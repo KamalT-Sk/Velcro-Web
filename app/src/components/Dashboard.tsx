@@ -1,0 +1,480 @@
+import { useState } from 'react';
+import { 
+  Copy, 
+  Eye, 
+  EyeOff,
+  ChevronRight,
+  AlertCircle,
+  RefreshCw,
+  ArrowRightLeft,
+  Plus,
+  Send,
+  RotateCcw,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Repeat
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { CurrencyHistoryModal } from './CurrencyHistoryModal';
+import { DepositModal } from './DepositModal';
+import { WithdrawModal } from './WithdrawModal';
+import { TransactionDetailModal } from './TransactionDetailModal';
+import type { UserKYC } from '@/App';
+
+// Currency data with logo paths
+interface Currency {
+  code: string;
+  name: string;
+  symbol: string;
+  balance: number;
+  isActive: boolean;
+  isComingSoon: boolean;
+  logo: string;
+}
+
+const currencies: Currency[] = [
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', balance: 2450000.50, isActive: true, isComingSoon: false, logo: '/logos/ng.png' },
+  { code: 'USD', name: 'US Dollar', symbol: '$', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/us.png' },
+  { code: 'EUR', name: 'Euro', symbol: '€', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/eu.png' },
+  { code: 'GBP', name: 'British Pound', symbol: '£', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/gb.png' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/ke.png' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/eg.png' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/za.png' },
+];
+
+interface Transaction {
+  id: number;
+  type: 'receive' | 'send' | 'convert' | 'deposit' | 'withdrawal';
+  amount: number;
+  currency: string;
+  from?: string;
+  to?: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+  description?: string;
+}
+
+const recentTransactions: Transaction[] = [
+  { id: 1, type: 'receive', amount: 50000, currency: 'NGN', from: 'John Doe', date: 'Today, 2:30 PM', status: 'completed', description: 'Payment for services' },
+  { id: 2, type: 'send', amount: 25000, currency: 'NGN', to: 'Sarah Smith', date: 'Yesterday, 4:15 PM', status: 'completed', description: 'Rent payment' },
+  { id: 3, type: 'convert', amount: 100000, currency: 'NGN', date: 'Yesterday, 10:00 AM', status: 'completed', description: 'Converted to USDC' },
+  { id: 4, type: 'receive', amount: 15000, currency: 'NGN', from: 'Mike Johnson', date: 'Mar 28, 2024', status: 'completed', description: 'Dinner split' },
+];
+
+interface DashboardProps {
+  userKYC: UserKYC;
+  velcroTag: string;
+  velcroPoints: number;
+}
+
+export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) {
+  const [showBalance, setShowBalance] = useState(true);
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const totalBalance = currencies.reduce((acc, curr) => acc + curr.balance, 0);
+
+  const handleCurrencyClick = (currency: Currency) => {
+    if (currency.isComingSoon) return;
+    setSelectedCurrency(currency);
+    setShowHistoryModal(true);
+  };
+
+  const copyWalletAddress = () => {
+    navigator.clipboard.writeText('7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU');
+    toast.success('Wallet address copied!');
+  };
+
+  const copyVelcroTag = () => {
+    navigator.clipboard.writeText(velcroTag);
+    toast.success('VelcroTag copied!');
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
+    toast.success('Balance refreshed!');
+  };
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'receive':
+        return <ArrowDownLeft size={18} className="text-green-600" />;
+      case 'send':
+        return <ArrowUpRight size={18} className="text-red-600" />;
+      case 'convert':
+        return <Repeat size={18} className="text-blue-600" />;
+      case 'deposit':
+        return <ArrowDownLeft size={18} className="text-purple-600" />;
+      case 'withdrawal':
+        return <Send size={18} className="text-orange-600" />;
+      default:
+        return <ArrowDownLeft size={18} className="text-gray-600" />;
+    }
+  };
+
+  const getTransactionBg = (type: string) => {
+    switch (type) {
+      case 'receive':
+        return 'bg-green-100';
+      case 'send':
+        return 'bg-red-100';
+      case 'convert':
+        return 'bg-blue-100';
+      case 'deposit':
+        return 'bg-purple-100';
+      case 'withdrawal':
+        return 'bg-orange-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header with VelcroTag & VelcroPoints - Small on top left */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 text-sm">Welcome back, Shehu Kamal!</p>
+          </div>
+          
+          {/* VelcroTag - Small, copyable */}
+          {userKYC.tier !== 'none' && (
+            <button
+              onClick={copyVelcroTag}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-velcro-navy text-white rounded-lg text-sm hover:bg-velcro-navy/90 transition-colors"
+              title="Click to copy"
+            >
+              <span className="text-white/70">@</span>
+              <span className="font-medium">{velcroTag}</span>
+              <Copy size={12} className="text-white/60" />
+            </button>
+          )}
+          
+          {/* VelcroPoints - Small */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+            <RotateCcw size={14} className="text-amber-600" />
+            <span className="font-medium text-amber-900">{velcroPoints.toLocaleString()} pts</span>
+          </div>
+        </div>
+        
+        {userKYC.tier === 'none' && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+            <AlertCircle size={16} className="text-amber-600" />
+            <span className="text-sm text-amber-700">Complete KYC to unlock full features</span>
+          </div>
+        )}
+      </div>
+
+      {/* Total Balance Card */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-soft">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <p className="text-gray-500 text-sm mb-1">Total Balance</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-display font-bold text-gray-900">
+                {showBalance ? `₦${totalBalance.toLocaleString()}` : '****'}
+              </span>
+            </div>
+            <p className="text-gray-400 text-sm mt-1">≈ $1,633.50 USD</p>
+          </div>
+          <button 
+            onClick={() => setShowBalance(!showBalance)}
+            className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            {showBalance ? <EyeOff size={18} className="text-gray-400" /> : <Eye size={18} className="text-gray-400" />}
+          </button>
+        </div>
+        
+        {/* Quick Actions - Add Funds, Transfer, Convert */}
+        <div className="flex gap-3">
+          <Button 
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white h-11 rounded-xl"
+            onClick={() => setShowDepositModal(true)}
+          >
+            <Plus size={18} className="mr-2" />
+            Add Funds
+          </Button>
+          <Button 
+            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white h-11 rounded-xl"
+            onClick={() => setShowWithdrawModal(true)}
+          >
+            <Send size={18} className="mr-2" />
+            Transfer
+          </Button>
+          <Button 
+            className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-11 rounded-xl"
+            onClick={() => toast.info('Convert feature coming soon!')}
+          >
+            <ArrowRightLeft size={18} className="mr-2" />
+            Convert
+          </Button>
+        </div>
+      </div>
+
+      {/* Currency Wallets */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-display font-semibold text-gray-900">Multi-Currency Wallets</h2>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+              title="Refresh rates"
+            >
+              <RefreshCw size={18} className={`text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+              View All <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+          {currencies.map((currency) => (
+            <button
+              key={currency.code}
+              onClick={() => handleCurrencyClick(currency)}
+              disabled={currency.isComingSoon}
+              className={`relative rounded-xl p-3 transition-all duration-300 text-left
+                ${currency.isActive 
+                  ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                  : currency.isComingSoon 
+                    ? 'bg-gray-50 border border-gray-200 opacity-60'
+                    : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-soft'
+                }`}
+            >
+              {currency.isComingSoon && (
+                <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-gray-200 text-gray-500 text-[10px] font-medium rounded">
+                  Soon
+                </span>
+              )}
+              
+              <div className="flex items-center gap-2 mb-2">
+                <img src={currency.logo} alt={currency.code} className="w-8 h-8 object-contain" />
+                <div>
+                  <p className={`font-semibold text-xs ${currency.isActive ? 'text-white' : 'text-gray-900'}`}>
+                    {currency.code}
+                  </p>
+                </div>
+              </div>
+              
+              <p className={`text-sm font-display font-bold ${currency.isActive ? 'text-white' : 'text-gray-900'}`}>
+                {showBalance 
+                  ? `${currency.symbol}${currency.balance.toLocaleString()}` 
+                  : '****'}
+              </p>
+              
+              {!currency.isComingSoon && currency.isActive && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-velcro-green rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stable Coin Hub */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-display font-semibold text-gray-900">Stable Coin Hub</h2>
+          <div className="flex items-center gap-2">
+            {/* Buy/Sell Rates */}
+            <div className="flex items-center gap-3 px-3 py-1.5 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-1">
+                <ArrowDownLeft size={14} className="text-green-600" />
+                <span className="text-xs text-green-700 font-medium">Buy: ₦1,500</span>
+              </div>
+              <div className="w-px h-3 bg-green-200" />
+              <div className="flex items-center gap-1">
+                <ArrowUpRight size={14} className="text-red-600" />
+                <span className="text-xs text-red-700 font-medium">Sell: ₦1,480</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
+              <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+              <span className="text-xs text-purple-700 font-medium">Solana</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="usdc-card rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <img src="/images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">USDC Balance</p>
+                    <p className="text-white/60 text-sm">Solana Network</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-display font-bold mt-3">
+                  {showBalance ? '$1,250.00' : '****'}
+                </p>
+                <p className="text-white/60 text-sm">≈ ₦1,875,000 NGN</p>
+                
+                {/* Non-KYC Limit Warning */}
+                {userKYC.tier === 'none' && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="limit-badge">Limit: ${userKYC.cryptoLimit}</span>
+                    <span className="text-xs text-white/60">Complete KYC for higher limits</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                  onClick={() => toast.info('Buy feature - Select token and chain to purchase USDC')}
+                >
+                  <ArrowDownLeft size={16} className="mr-1.5" />
+                  Buy
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                  onClick={() => toast.info('Sell feature - Sell USDC to NGN')}
+                >
+                  <ArrowUpRight size={16} className="mr-1.5" />
+                  Sell
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                  onClick={copyWalletAddress}
+                >
+                  <Copy size={16} className="mr-1.5" />
+                  Copy
+                </Button>
+              </div>
+            </div>
+            
+            {/* Wallet Address - Shortened on mobile */}
+            <div className="mt-4 p-3 bg-white/10 rounded-xl flex items-center justify-between backdrop-blur-sm">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <img src="/images/solana-logo.png" alt="Solana" className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-mono text-white/80 truncate">
+                  7xKX...sAsU
+                </span>
+                <span className="hidden sm:inline text-sm font-mono text-white/80">
+                  tg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
+                </span>
+              </div>
+              <button 
+                onClick={copyWalletAddress}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
+            
+            {/* Supported Chains */}
+            <div className="mt-4 flex items-center gap-3 text-white/60 text-sm flex-wrap">
+              <Repeat size={14} />
+              <span>Swap from:</span>
+              <div className="flex items-center gap-2">
+                <img src="/logos/usdt.png" alt="USDT" className="w-5 h-5" title="USDT" />
+                <img src="/logos/cngn.png" alt="CNGN" className="w-5 h-5" title="CNGN" />
+                <img src="/logos/ethereum.png" alt="Ethereum" className="w-5 h-5" title="Ethereum" />
+                <img src="/logos/bsc.png" alt="BSC" className="w-5 h-5" title="BSC" />
+                <img src="/logos/polygon.png" alt="Polygon" className="w-5 h-5" title="Polygon" />
+                <img src="/logos/arbitrum.png" alt="Arbitrum" className="w-5 h-5" title="Arbitrum" />
+                <img src="/logos/base.png" alt="Base" className="w-5 h-5" title="Base" />
+                <img src="/logos/tron.png" alt="Tron" className="w-5 h-5" title="Tron" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-display font-semibold text-gray-900">Recent Transactions</h2>
+          <button className="text-sm text-gray-500 hover:text-gray-700">
+            View All
+          </button>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          {recentTransactions.map((tx, index) => (
+            <button 
+              key={tx.id}
+              onClick={() => setSelectedTransaction(tx)}
+              className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left
+                ${index !== recentTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTransactionBg(tx.type)}`}>
+                  {getTransactionIcon(tx.type)}
+                </div>
+                <div>
+                  <p className="font-medium text-sm text-gray-900">
+                    {tx.type === 'receive' ? `Received from ${tx.from}` : 
+                     tx.type === 'send' ? `Sent to ${tx.to}` : `Converted ${tx.from} to ${tx.to}`}
+                  </p>
+                  <p className="text-gray-400 text-xs">{tx.date}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`font-semibold text-sm
+                  ${tx.type === 'receive' ? 'text-green-600' : 
+                    tx.type === 'send' ? 'text-red-600' : 'text-gray-900'}`}>
+                  {tx.type === 'receive' ? '+' : tx.type === 'send' ? '-' : ''}
+                  {tx.type === 'convert' ? '' : '₦'}
+                  {tx.amount.toLocaleString()}
+                </p>
+                <p className="text-green-600 text-xs">{tx.status}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Modals */}
+      <CurrencyHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        currency={selectedCurrency}
+        onDeposit={() => {
+          setShowHistoryModal(false);
+          setShowDepositModal(true);
+        }}
+        onWithdraw={() => {
+          setShowHistoryModal(false);
+          setShowWithdrawModal(true);
+        }}
+      />
+      <DepositModal
+        isOpen={showDepositModal}
+        onClose={() => setShowDepositModal(false)}
+      />
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        userKYC={userKYC}
+        velcroTag={velcroTag}
+      />
+      <TransactionDetailModal
+        isOpen={!!selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+        transaction={selectedTransaction}
+      />
+    </div>
+  );
+}
