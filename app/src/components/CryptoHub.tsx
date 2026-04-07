@@ -108,11 +108,12 @@ interface OneTimeAddress {
 
 interface CryptoHubProps {
   userKYC: UserKYC;
+  onOpenKYC: () => void;
 }
 
 type TimerType = ReturnType<typeof setInterval>;
 
-export function CryptoHub({ userKYC }: CryptoHubProps) {
+export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   const [activeTab, setActiveTab] = useState<'wallet' | 'buy' | 'sell' | 'send' | 'history'>('wallet');
   const [showBalance, setShowBalance] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -152,13 +153,9 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
   const [sellTimeLeft, setSellTimeLeft] = useState(1800);
   const [isGeneratingSellAddress, setIsGeneratingSellAddress] = useState(false);
   
-  // SEND state
-  const [sendToken, setSendToken] = useState('USDC');
-  const [sendChain, setSendChain] = useState('Solana');
+  // SEND state (main wallet only - USDC on Solana)
   const [sendAmount, setSendAmount] = useState('');
   const [sendAddress, setSendAddress] = useState('');
-  const [showSendTokenSelect, setShowSendTokenSelect] = useState(false);
-  const [showSendChainSelect, setShowSendChainSelect] = useState(false);
   
   const remainingLimit = userKYC?.cryptoLimit ? userKYC.cryptoLimit - solanaBalance : 100 - solanaBalance;
 
@@ -380,8 +377,8 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
       id: Date.now().toString(),
       type: 'send',
       amount,
-      token: sendToken,
-      chain: sendChain,
+      token: 'USDC',
+      chain: 'Solana',
       address: sendAddress,
       status: 'processing',
       timestamp: new Date().toISOString(),
@@ -394,7 +391,7 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
     setTimeout(() => {
       setSolanaBalance(prev => prev - amount);
       setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
-      toast.success(`${amount} ${sendToken} sent!`);
+      toast.success(`${amount} USDC sent!`);
       setSendAmount('');
       setSendAddress('');
     }, 2000);
@@ -583,6 +580,12 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
               <p className="text-xs text-amber-600 mt-1">
                 Limit: ${userKYC?.cryptoLimit || 100} | Used: ${solanaBalance.toFixed(2)} | Remaining: ${Math.max(0, remainingLimit).toFixed(2)}
               </p>
+              <button
+                onClick={onOpenKYC}
+                className="mt-3 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Upgrade Tier to Increase Limit
+              </button>
             </div>
           </div>
         </div>
@@ -963,80 +966,65 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
       {/* SEND TAB */}
       {activeTab === 'send' && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <h2 className="text-lg font-display font-semibold text-gray-900 mb-6">Send Out Crypto</h2>
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">Send Out Crypto</h2>
+          <p className="text-sm text-gray-500 mb-6">Send from your main Solana USDC wallet</p>
           
           <div className="space-y-6">
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Token</Label>
-              <button onClick={() => setShowSendTokenSelect(!showSendTokenSelect)}
-                className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <img src={EXTERNAL_TOKENS.find(t => t.symbol === sendToken)?.logo} alt={sendToken} className="w-8 h-8" />
-                  <span className="font-medium">{sendToken}</span>
+            {/* Wallet Info Card */}
+            <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+                  <img src="/images/usdc-logo.png" alt="USDC" className="w-6 h-6" />
                 </div>
-                <ChevronDown size={18} className="text-gray-400" />
-              </button>
-              {showSendTokenSelect && (
-                <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg">
-                  {EXTERNAL_TOKENS.map((token) => (
-                    <button key={token.symbol} onClick={() => { setSendToken(token.symbol); setShowSendTokenSelect(false); }}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                      <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
-                      <span className="font-medium">{token.symbol}</span>
-                    </button>
-                  ))}
+                <div>
+                  <p className="font-semibold text-gray-900">USDC</p>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <span>Solana Main Wallet</span>
+                  </div>
                 </div>
-              )}
+              </div>
+              <div className="pt-3 border-t border-purple-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">Available Balance</span>
+                  <span className="font-semibold text-gray-900">${solanaBalance.toLocaleString()} USDC</span>
+                </div>
+              </div>
             </div>
 
             <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Blockchain</Label>
-              <button onClick={() => setShowSendChainSelect(!showSendChainSelect)}
-                className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <img src={BLOCKCHAINS.find(c => c.name === sendChain)?.logo} alt={sendChain} className="w-6 h-6" />
-                  <span className="font-medium">{sendChain}</span>
-                </div>
-                <ChevronDown size={18} className="text-gray-400" />
-              </button>
-              {showSendChainSelect && (
-                <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg">
-                  {BLOCKCHAINS.filter(c => c.tokens.includes(sendToken)).map((chain) => (
-                    <button key={chain.name} onClick={() => { setSendChain(chain.name); setShowSendChainSelect(false); }}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                      <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
-                      <span className="font-medium">{chain.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Amount</Label>
+              <Label className="text-sm text-gray-600 mb-2 block">Amount (USDC)</Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
-                <Input type="number" placeholder="0.00" value={sendAmount} onChange={(e) => setSendAmount(e.target.value)} className="pl-10 py-6 text-lg rounded-xl" />
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  value={sendAmount} 
+                  onChange={(e) => setSendAmount(e.target.value)} 
+                  className="pl-10 py-6 text-lg rounded-xl" 
+                />
               </div>
               {sendAmount && <p className="text-xs text-gray-500 mt-2">Fee (0.5%): ${calculateFee(Number(sendAmount)).toFixed(2)}</p>}
             </div>
 
             <div>
               <Label className="text-sm text-gray-600 mb-2 block">Recipient Address</Label>
-              <Input type="text" placeholder={`Enter ${sendChain} address`} value={sendAddress} onChange={(e) => setSendAddress(e.target.value)} className="py-4 rounded-xl font-mono text-sm" />
+              <Input 
+                type="text" 
+                placeholder="Enter Solana address" 
+                value={sendAddress} 
+                onChange={(e) => setSendAddress(e.target.value)} 
+                className="py-4 rounded-xl font-mono text-sm" 
+              />
             </div>
 
-            <div className="p-3 bg-gray-50 rounded-xl">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Available</span>
-                <span className="font-medium">${solanaBalance.toLocaleString()} USDC</span>
-              </div>
-            </div>
-
-            <Button onClick={handleSend} disabled={!sendAmount || Number(sendAmount) <= 0 || !sendAddress || Number(sendAmount) > solanaBalance}
-              className="w-full bg-purple-600 text-white h-12 rounded-xl">
+            <Button 
+              onClick={handleSend} 
+              disabled={!sendAmount || Number(sendAmount) <= 0 || !sendAddress || Number(sendAmount) > solanaBalance}
+              className="w-full bg-purple-600 text-white h-12 rounded-xl"
+            >
               <Send size={18} className="mr-2" />
-              Send {sendToken}
+              Send USDC from Solana
             </Button>
           </div>
         </div>

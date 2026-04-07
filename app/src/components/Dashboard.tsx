@@ -12,8 +12,7 @@ import {
   RotateCcw,
   ArrowDownLeft,
   ArrowUpRight,
-  Repeat,
-  Link2
+  Repeat
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -317,8 +316,8 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
           </button>
         </div>
         
-        {/* Quick Actions - Add Funds, Transfer, Send Link, Convert */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Quick Actions - Add Funds, Transfer, Convert */}
+        <div className="grid grid-cols-3 gap-3">
           <Button 
             className="bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl"
             onClick={() => setShowDepositModal(true)}
@@ -332,13 +331,6 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
           >
             <Send size={18} className="mr-2" />
             Transfer
-          </Button>
-          <Button 
-            className="bg-velcro-navy hover:bg-velcro-navy/90 text-white h-12 rounded-xl"
-            onClick={() => setShowSendLinkModal(true)}
-          >
-            <Link2 size={18} className="mr-2" />
-            Send Link
           </Button>
           <Button 
             className="bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
@@ -656,6 +648,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
           </div>
         </div>
       )}
+
     </div>
   );
 }

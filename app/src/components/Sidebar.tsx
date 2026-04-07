@@ -24,6 +24,7 @@ interface SidebarProps {
   velcroTag: string;
   velcroPoints: number;
   onWhatsAppClick: () => void;
+  onKYCClick: () => void;
 }
 
 const menuItems: { id: View; label: string; icon: React.ElementType }[] = [
@@ -35,7 +36,7 @@ const menuItems: { id: View; label: string; icon: React.ElementType }[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, velcroTag, velcroPoints, onWhatsAppClick }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, velcroTag, velcroPoints, onWhatsAppClick, onKYCClick }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -88,10 +89,28 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
           <div className="px-4 py-3 border-b border-gray-100">
             <button 
               onClick={onWhatsAppClick}
-              className="flex items-center gap-3 text-gray-600 hover:text-green-600 transition-colors"
+              className={`flex items-center gap-3 w-full p-2 rounded-xl transition-colors ${
+                whatsAppNumber 
+                  ? 'bg-green-50 hover:bg-green-100 text-green-700' 
+                  : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+              }`}
             >
-              <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
-              <span className="text-sm font-medium">{whatsAppNumber || 'Sync WhatsApp'}</span>
+              <div className="relative">
+                <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
+                {whatsAppNumber && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                )}
+              </div>
+              <div className="text-left">
+                <span className="text-sm font-medium">
+                  {whatsAppNumber ? 'WhatsApp Active' : 'Sync WhatsApp'}
+                </span>
+                {whatsAppNumber && (
+                  <p className="text-xs text-green-600">
+                    {whatsAppNumber.slice(0, 7)}****{whatsAppNumber.slice(-3)}
+                  </p>
+                )}
+              </div>
             </button>
           </div>
         )}
@@ -159,6 +178,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
                 size="sm" 
                 variant="outline"
                 className="w-full text-xs h-8 border-gray-200 hover:bg-gray-100"
+                onClick={onKYCClick}
               >
                 {userKYC.tier === 'none' ? 'Verify Now' : 'Upgrade Tier'}
               </Button>

@@ -10,6 +10,7 @@ import { AuthFlow } from './components/AuthFlow';
 import { KYCModal } from './components/KYCModal';
 import { WhatsAppSyncModal } from './components/WhatsAppSyncModal';
 import { ClaimPage } from './components/ClaimPage';
+import { SupportButton } from './components/SupportButton';
 import { Toaster } from '@/components/ui/sonner';
 
 export type View = 'dashboard' | 'payment-links' | 'crypto' | 'utilities' | 'settings' | 'cards';
@@ -29,7 +30,7 @@ function App() {
   const [showKYC, setShowKYC] = useState(false);
   const [showWhatsAppSync, setShowWhatsAppSync] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [whatsAppNumber, setWhatsAppNumber] = useState<string | null>(null);
+  const [whatsAppNumber, setWhatsAppNumber] = useState<string | null>('+2348001234567'); // Default for demo
   const [velcroTag, setVelcroTag] = useState<string>('');
   const [velcroPoints] = useState<number>(2450);
   const [userKYC, setUserKYC] = useState<UserKYC>({
@@ -112,6 +113,7 @@ function App() {
         velcroTag={velcroTag}
         velcroPoints={velcroPoints}
         onWhatsAppClick={() => setShowWhatsAppSync(true)}
+        onKYCClick={() => setShowKYC(true)}
       />
       
       <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-auto">
@@ -124,7 +126,7 @@ function App() {
             />
           )}
           {currentView === 'payment-links' && <PaymentLinks />}
-          {currentView === 'crypto' && <CryptoHub userKYC={userKYC} />}
+          {currentView === 'crypto' && <CryptoHub userKYC={userKYC} onOpenKYC={() => setShowKYC(true)} />}
           {currentView === 'utilities' && <Utilities />}
           {currentView === 'settings' && <Settings />}
           {currentView === 'cards' && <Cards />}
@@ -139,8 +141,11 @@ function App() {
             setWhatsAppNumber(number);
             setShowWhatsAppSync(false);
           }}
+          currentNumber={whatsAppNumber}
+          userEmail="user@example.com"
         />
       )}
+      <SupportButton />
       <Toaster />
     </div>
   );

@@ -15,7 +15,15 @@ import {
   Globe,
   Zap,
   X,
-  ArrowRight
+  ArrowRight,
+  HeadphonesIcon,
+  Mail,
+  MessageCircle,
+  Calendar,
+  Clock,
+  Hash,
+  MapPin,
+  CreditCardIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,13 +40,75 @@ const subscriptionBrands = [
   { name: 'Disney+', logo: '/brands/disney.png', color: '#113CCF' },
 ];
 
-// Virtual card transactions
+// Virtual card transactions with more details
 const cardTransactions = [
-  { id: 1, merchant: 'Netflix', amount: 15.99, date: 'Today, 8:00 AM', status: 'completed', logo: '/brands/netflix.png' },
-  { id: 2, merchant: 'Spotify', amount: 10.99, date: 'Yesterday, 6:30 PM', status: 'completed', logo: '/brands/spotify.png' },
-  { id: 3, merchant: 'YouTube Premium', amount: 11.99, date: 'Mar 28, 2024', status: 'completed', logo: '/brands/youtube.png' },
-  { id: 4, merchant: 'Apple Music', amount: 10.99, date: 'Mar 25, 2024', status: 'completed', logo: '/brands/apple-music.png' },
+  { 
+    id: 1, 
+    merchant: 'Netflix', 
+    amount: 15.99, 
+    date: 'Today, 8:00 AM', 
+    status: 'completed', 
+    logo: '/brands/netflix.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '847291',
+    description: 'Monthly subscription'
+  },
+  { 
+    id: 2, 
+    merchant: 'Spotify', 
+    amount: 10.99, 
+    date: 'Yesterday, 6:30 PM', 
+    status: 'completed', 
+    logo: '/brands/spotify.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '762345',
+    description: 'Premium subscription'
+  },
+  { 
+    id: 3, 
+    merchant: 'YouTube Premium', 
+    amount: 11.99, 
+    date: 'Mar 28, 2024', 
+    status: 'completed', 
+    logo: '/brands/youtube.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '982341',
+    description: 'Monthly subscription'
+  },
+  { 
+    id: 4, 
+    merchant: 'Apple Music', 
+    amount: 10.99, 
+    date: 'Mar 25, 2024', 
+    status: 'completed', 
+    logo: '/brands/apple-music.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '127643',
+    description: 'Individual plan'
+  },
 ];
+
+interface CardTransaction {
+  id: number;
+  merchant: string;
+  amount: number;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+  logo: string;
+  cardLast4: string;
+  category: string;
+  location: string;
+  authCode: string;
+  description: string;
+}
 
 export function Cards() {
   const [showCardDetails, setShowCardDetails] = useState(false);
@@ -48,6 +118,7 @@ export function Cards() {
   const [topUpMethod, setTopUpMethod] = useState<'naira' | 'usdc'>('naira');
   const [topUpAmount, setTopUpAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<CardTransaction | null>(null);
 
   const copyCardNumber = () => {
     navigator.clipboard.writeText('4532 8847 1234 5678');
@@ -74,6 +145,23 @@ export function Cards() {
     toast.success(`Card topped up with $${amount.toFixed(2)} from ${methodName}!`);
     setShowTopUpModal(false);
     setTopUpAmount('');
+  };
+
+  const handleEmailSupport = (tx: CardTransaction) => {
+    const subject = `Support Request - Card Transaction #${tx.id.toString().padStart(8, '0')}`;
+    const body = `Hello Velcro Support,%0D%0A%0D%AI need help with the following card transaction:%0D%0A%0D%0A- Transaction ID: ${tx.id.toString().padStart(8, '0')}%0D%0A- Merchant: ${tx.merchant}%0D%0A- Amount: $${tx.amount.toFixed(2)}%0D%0A- Date: ${tx.date}%0D%0A- Status: ${tx.status}%0D%0A- Auth Code: ${tx.authCode}%0D%0A%0D%0APlease describe your issue here...`;
+    window.open(`mailto:support@usevelcro.com?subject=${encodeURIComponent(subject)}&body=${body}`);
+    toast.success('Opening email client...');
+  };
+
+  const handleWhatsAppSupport = (tx: CardTransaction) => {
+    const message = `Hello Velcro Support, I need help with Card Transaction #${tx.id.toString().padStart(8, '0')} - $${tx.amount.toFixed(2)} at ${tx.merchant} on ${tx.date}`;
+    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+    toast.success('Opening WhatsApp...');
+  };
+
+  const handleReportDispute = (tx: CardTransaction) => {
+    toast.info('Dispute feature coming soon!');
   };
 
   return (
@@ -419,16 +507,20 @@ export function Cards() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-display font-semibold text-gray-900">Card Activity</h2>
-              <button className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+              <button 
+                onClick={() => toast.info('Full transaction history coming soon!')}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
                 View All <ExternalLink size={14} />
               </button>
             </div>
             
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               {cardTransactions.map((tx, index) => (
-                <div 
+                <button 
                   key={tx.id}
-                  className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors
+                  onClick={() => setSelectedTransaction(tx)}
+                  className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left
                     ${index !== cardTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
                 >
                   <div className="flex items-center gap-3">
@@ -450,7 +542,7 @@ export function Cards() {
                       <Check size={10} /> {tx.status}
                     </p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -554,6 +646,179 @@ export function Cards() {
                 <p className="text-xs text-gray-500 mt-1">{benefit.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Card Transaction Detail Modal */}
+      {selectedTransaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSelectedTransaction(null)}
+          />
+          
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-display font-bold text-gray-900">Transaction Details</h2>
+                <button
+                  onClick={() => setSelectedTransaction(null)}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-5 space-y-6">
+              {/* Merchant & Amount */}
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-gray-100">
+                  <img 
+                    src={selectedTransaction.logo} 
+                    alt={selectedTransaction.merchant}
+                    className="w-10 h-10 object-contain"
+                  />
+                </div>
+                <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-600">
+                  {selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)}
+                </span>
+                <p className="text-3xl font-display font-bold text-gray-900 mt-3">
+                  -${selectedTransaction.amount.toFixed(2)}
+                </p>
+                <p className="text-gray-500 text-sm mt-1">{selectedTransaction.merchant}</p>
+              </div>
+              
+              {/* Details */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <Hash size={14} />
+                    <span>Transaction ID</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm">#{selectedTransaction.id.toString().padStart(8, '0')}</span>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedTransaction.id.toString().padStart(8, '0'));
+                        toast.success('Copied!');
+                      }}
+                      className="p-1 hover:bg-gray-200 rounded"
+                    >
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <CreditCardIcon size={14} />
+                    <span>Card Used</span>
+                  </div>
+                  <span className="text-sm">**** {selectedTransaction.cardLast4}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <Calendar size={14} />
+                    <span>Date</span>
+                  </div>
+                  <span className="text-sm">{selectedTransaction.date}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <MapPin size={14} />
+                    <span>Location</span>
+                  </div>
+                  <span className="text-sm">{selectedTransaction.location}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <Hash size={14} />
+                    <span>Auth Code</span>
+                  </div>
+                  <span className="font-mono text-sm">{selectedTransaction.authCode}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500 text-sm">Category</span>
+                  <span className="text-sm font-medium">{selectedTransaction.category}</span>
+                </div>
+                
+                {selectedTransaction.description && (
+                  <div className="flex items-start justify-between">
+                    <span className="text-gray-500 text-sm">Description</span>
+                    <span className="text-sm text-right max-w-[60%]">{selectedTransaction.description}</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <span className="text-gray-500 text-sm">Fee</span>
+                  <span className="text-sm font-medium">$0.00</span>
+                </div>
+              </div>
+
+              {/* Help & Support Section */}
+              <div className="border-t border-gray-100 pt-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <HeadphonesIcon size={18} className="text-blue-600" />
+                  <h3 className="font-semibold text-gray-900">Need Help?</h3>
+                </div>
+                
+                <div className="space-y-2">
+                  {/* Email Support */}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleEmailSupport(selectedTransaction)}
+                    className="w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-12 rounded-xl justify-start"
+                  >
+                    <Mail size={18} className="mr-3 text-blue-600" />
+                    <div className="text-left flex-1">
+                      <span className="text-sm font-medium text-gray-900">Email Support</span>
+                      <p className="text-xs text-gray-500">support@usevelcro.com</p>
+                    </div>
+                    <ExternalLink size={14} className="text-gray-400" />
+                  </Button>
+
+                  {/* WhatsApp Support */}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleWhatsAppSupport(selectedTransaction)}
+                    className="w-full border-green-200 hover:bg-green-50 hover:border-green-300 h-12 rounded-xl justify-start"
+                  >
+                    <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                    <div className="text-left flex-1">
+                      <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
+                      <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                    </div>
+                    <ExternalLink size={14} className="text-gray-400" />
+                  </Button>
+
+                  {/* Report Dispute */}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReportDispute(selectedTransaction)}
+                    className="w-full border-red-200 hover:bg-red-50 hover:border-red-300 h-12 rounded-xl justify-start"
+                  >
+                    <MessageCircle size={18} className="mr-3 text-red-600" />
+                    <div className="text-left flex-1">
+                      <span className="text-sm font-medium text-gray-900">Report Dispute</span>
+                      <p className="text-xs text-gray-500">Problem with this transaction?</p>
+                    </div>
+                  </Button>
+                </div>
+
+                <div className="mt-4 p-3 bg-blue-50 rounded-xl">
+                  <p className="text-xs text-blue-700 text-center">
+                    Include your Transaction ID and Auth Code when contacting support for faster assistance
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

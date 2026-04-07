@@ -11,7 +11,11 @@ import {
   Camera,
   Check,
   AlertTriangle,
-  Plus
+  Plus,
+  HeadphonesIcon,
+  Mail,
+  MessageCircle,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +35,7 @@ const settingSections: SettingSection[] = [
   { id: 'security', title: 'Security', icon: Shield, description: 'Password, PIN, and 2FA settings' },
   { id: 'payment', title: 'Payment Methods', icon: Wallet, description: 'Manage your bank accounts and cards' },
   { id: 'preferences', title: 'Preferences', icon: Globe, description: 'Language, currency, and theme' },
+  { id: 'support', title: 'Help & Support', icon: HeadphonesIcon, description: 'Get help via email or WhatsApp' },
 ];
 
 export function Settings() {
@@ -276,6 +281,79 @@ export function Settings() {
     </div>
   );
 
+  const renderSupportSettings = () => (
+    <div className="space-y-6">
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+            <HeadphonesIcon size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="font-medium text-blue-800">We're here to help</p>
+            <p className="text-blue-600 text-sm">Choose your preferred support channel</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {/* Email Support */}
+        <a 
+          href="mailto:support@usevelcro.com"
+          className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-soft hover:bg-blue-50/50 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Mail size={24} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Email Support</p>
+              <p className="text-gray-500 text-sm">support@usevelcro.com</p>
+              <p className="text-xs text-gray-400 mt-1">Response within 24 hours</p>
+            </div>
+          </div>
+          <ExternalLink size={18} className="text-gray-400" />
+        </a>
+
+        {/* WhatsApp Support */}
+        <a 
+          href="https://wa.me/2348001234567"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-green-200 hover:shadow-soft hover:bg-green-50/50 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">WhatsApp Support</p>
+              <p className="text-gray-500 text-sm">+234 800 123 4567</p>
+              <p className="text-xs text-gray-400 mt-1">Usually responds in minutes</p>
+            </div>
+          </div>
+          <ExternalLink size={18} className="text-gray-400" />
+        </a>
+
+        {/* FAQ Section */}
+        <div className="mt-6">
+          <h3 className="font-semibold text-gray-900 mb-3">Frequently Asked Questions</h3>
+          <div className="space-y-2">
+            {[
+              { q: 'How do I upgrade my KYC tier?', a: 'Go to Settings and click "Verify Now" to start your KYC process.' },
+              { q: 'What are the transaction fees?', a: 'Fiat transfers: 0.5% (max ₦5,000). Crypto: 0.5% (no cap).' },
+              { q: 'How long do transfers take?', a: 'Internal transfers are instant. Bank transfers take 1-24 hours.' },
+            ].map((faq, idx) => (
+              <div key={idx} className="p-3 bg-gray-50 rounded-xl">
+                <p className="font-medium text-gray-900 text-sm">{faq.q}</p>
+                <p className="text-gray-500 text-sm mt-1">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeSection) {
       case 'profile': return renderProfileSettings();
@@ -283,6 +361,7 @@ export function Settings() {
       case 'security': return renderSecuritySettings();
       case 'payment': return renderPaymentSettings();
       case 'preferences': return renderPreferenceSettings();
+      case 'support': return renderSupportSettings();
       default: return null;
     }
   };

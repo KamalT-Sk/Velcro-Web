@@ -1,4 +1,4 @@
-import { X, Copy, MessageCircle, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign } from 'lucide-react';
+import { X, Copy, MessageCircle, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign, HeadphonesIcon, Mail, ExternalLink, FileQuestion, Clock, Calendar, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -100,9 +100,27 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
     }
   };
 
-  const handleContactSupport = () => {
-    toast.info('Opening support chat...');
+  const handleEmailSupport = () => {
+    const subject = `Support Request - Transaction #${transaction.id.toString().padStart(8, '0')}`;
+    const body = `Hello Velcro Support,%0D%0A%0D%AI need help with the following transaction:%0D%0A%0D%0A- Transaction ID: ${transaction.id.toString().padStart(8, '0')}%0D%0A- Type: ${transaction.type}%0D%0A- Amount: ${transaction.currency === 'NGN' ? '₦' : '$'}${transaction.amount.toLocaleString()}%0D%0A- Date: ${transaction.date}%0D%0A- Status: ${transaction.status}%0D%0A%0D%0APlease describe your issue here...`;
+    window.open(`mailto:support@usevelcro.com?subject=${encodeURIComponent(subject)}&body=${body}`);
+    toast.success('Opening email client...');
   };
+
+  const handleWhatsAppSupport = () => {
+    const message = `Hello Velcro Support, I need help with Transaction #${transaction.id.toString().padStart(8, '0')} - ${transaction.type} of ${transaction.currency === 'NGN' ? '₦' : '$'}${transaction.amount.toLocaleString()} on ${transaction.date}`;
+    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+    toast.success('Opening WhatsApp...');
+  };
+
+  const handleReportIssue = () => {
+    toast.info('Report feature coming soon!');
+  };
+
+  // Parse date to show more details
+  const txDate = new Date(transaction.date);
+  const formattedDate = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const formattedTime = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -152,7 +170,10 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
           {/* Details */}
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-sm">Transaction ID</span>
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <Hash size={14} />
+                <span>Transaction ID</span>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm">#{transaction.id.toString().padStart(8, '0')}</span>
                 <button 
@@ -168,28 +189,39 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-sm">Date & Time</span>
-              <span className="text-sm">{transaction.date}</span>
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <Calendar size={14} />
+                <span>Date</span>
+              </div>
+              <span className="text-sm">{formattedDate}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <Clock size={14} />
+                <span>Time</span>
+              </div>
+              <span className="text-sm">{formattedTime}</span>
             </div>
             
             {transaction.from && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 text-sm">From</span>
-                <span className="text-sm">{transaction.from}</span>
+                <span className="text-sm font-medium">{transaction.from}</span>
               </div>
             )}
             
             {transaction.to && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-500 text-sm">To</span>
-                <span className="text-sm">{transaction.to}</span>
+                <span className="text-sm font-medium">{transaction.to}</span>
               </div>
             )}
             
             {transaction.description && (
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between">
                 <span className="text-gray-500 text-sm">Description</span>
-                <span className="text-sm text-right max-w-[50%]">{transaction.description}</span>
+                <span className="text-sm text-right max-w-[60%]">{transaction.description}</span>
               </div>
             )}
             
@@ -198,16 +230,64 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
               <span className="text-sm font-medium">₦0.00</span>
             </div>
           </div>
-          
-          {/* Contact Support */}
-          <Button
-            variant="outline"
-            onClick={handleContactSupport}
-            className="w-full border-gray-200 hover:bg-gray-50 h-12 rounded-xl"
-          >
-            <MessageCircle size={18} className="mr-2 text-green-600" />
-            Contact Support
-          </Button>
+
+          {/* Help & Support Section */}
+          <div className="border-t border-gray-100 pt-5">
+            <div className="flex items-center gap-2 mb-4">
+              <HeadphonesIcon size={18} className="text-blue-600" />
+              <h3 className="font-semibold text-gray-900">Need Help?</h3>
+            </div>
+            
+            <div className="space-y-2">
+              {/* Email Support */}
+              <Button
+                variant="outline"
+                onClick={handleEmailSupport}
+                className="w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300 h-12 rounded-xl justify-start"
+              >
+                <Mail size={18} className="mr-3 text-blue-600" />
+                <div className="text-left flex-1">
+                  <span className="text-sm font-medium text-gray-900">Email Support</span>
+                  <p className="text-xs text-gray-500">support@usevelcro.com</p>
+                </div>
+                <ExternalLink size={14} className="text-gray-400" />
+              </Button>
+
+              {/* WhatsApp Support */}
+              <Button
+                variant="outline"
+                onClick={handleWhatsAppSupport}
+                className="w-full border-green-200 hover:bg-green-50 hover:border-green-300 h-12 rounded-xl justify-start"
+              >
+                <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                <div className="text-left flex-1">
+                  <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
+                  <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                </div>
+                <ExternalLink size={14} className="text-gray-400" />
+              </Button>
+
+              {/* Report Issue */}
+              <Button
+                variant="outline"
+                onClick={handleReportIssue}
+                className="w-full border-red-200 hover:bg-red-50 hover:border-red-300 h-12 rounded-xl justify-start"
+              >
+                <FileQuestion size={18} className="mr-3 text-red-600" />
+                <div className="text-left flex-1">
+                  <span className="text-sm font-medium text-gray-900">Report an Issue</span>
+                  <p className="text-xs text-gray-500">Something wrong with this transaction?</p>
+                </div>
+              </Button>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-xl">
+              <p className="text-xs text-blue-700 text-center">
+                <MessageCircle size={12} className="inline mr-1" />
+                Include your Transaction ID when contacting support for faster assistance
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
