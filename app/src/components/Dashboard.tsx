@@ -412,31 +412,22 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         </div>
       </div>
 
-      {/* Stable Coin Hub */}
+      {/* Solana Stable Hub Preview */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-display font-semibold text-gray-900">Stable Coin Hub</h2>
-          <div className="flex items-center gap-2">
-            {/* Buy/Sell Rates */}
-            <div className="flex items-center gap-3 px-3 py-1.5 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-1">
-                <ArrowDownLeft size={14} className="text-green-600" />
-                <span className="text-xs text-green-700 font-medium">Buy: ₦1,500</span>
-              </div>
-              <div className="w-px h-3 bg-green-200" />
-              <div className="flex items-center gap-1">
-                <ArrowUpRight size={14} className="text-red-600" />
-                <span className="text-xs text-red-700 font-medium">Sell: ₦1,480</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
-              <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
-              <span className="text-xs text-purple-700 font-medium">Solana</span>
-            </div>
+          <h2 className="text-lg font-display font-semibold text-gray-900">Solana Stable Hub</h2>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
+            <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+            <span className="text-xs text-purple-700 font-medium">Powered by Solana</span>
           </div>
         </div>
         
-        <div className="usdc-card rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+          </div>
+          
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
@@ -446,63 +437,53 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
                   </div>
                   <div>
                     <p className="font-semibold">USDC Balance</p>
-                    <p className="text-white/60 text-sm">Solana Network</p>
+                    <p className="text-white/60 text-sm flex items-center gap-1">
+                      <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                      Solana Network
+                    </p>
                   </div>
                 </div>
                 <p className="text-3xl font-display font-bold mt-3">
                   {showBalance ? `$${usdcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '****'}
                 </p>
                 <p className="text-white/60 text-sm">≈ ₦{(usdcBalance * 1500).toLocaleString()} NGN</p>
-                
-                {/* Non-KYC Limit Warning */}
-                {userKYC.tier === 'none' && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="limit-badge">Limit: ${userKYC.cryptoLimit}</span>
-                    <span className="text-xs text-white/60">Complete KYC for higher limits</span>
-                  </div>
-                )}
               </div>
               
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                  onClick={() => toast.info('Buy feature - Select token and chain to purchase USDC')}
-                >
-                  <ArrowDownLeft size={16} className="mr-1.5" />
-                  Buy
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                  onClick={() => toast.info('Sell feature - Sell USDC to NGN')}
-                >
-                  <ArrowUpRight size={16} className="mr-1.5" />
-                  Sell
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                  onClick={copyWalletAddress}
-                >
-                  <Copy size={16} className="mr-1.5" />
-                  Copy
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                    onClick={() => toast.info('Go to Crypto Hub to buy USDC')}
+                  >
+                    <ArrowDownLeft size={16} className="mr-1.5" />
+                    Buy
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                    onClick={() => toast.info('Go to Crypto Hub to sell USDC')}
+                  >
+                    <ArrowUpRight size={16} className="mr-1.5" />
+                    Sell
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/60">
+                  <span>Buy: ₦1,500</span>
+                  <span className="text-white/40">|</span>
+                  <span>Sell: ₦1,480</span>
+                </div>
               </div>
             </div>
             
-            {/* Wallet Address - Shortened on mobile */}
+            {/* Wallet Address */}
             <div className="mt-4 p-3 bg-white/10 rounded-xl flex items-center justify-between backdrop-blur-sm">
               <div className="flex items-center gap-2 overflow-hidden">
-                <img src="/images/solana-logo.png" alt="Solana" className="w-5 h-5 flex-shrink-0" />
+                <span className="text-xs text-white/60">Solana:</span>
                 <span className="text-sm font-mono text-white/80 truncate">
                   7xKX...sAsU
-                </span>
-                <span className="hidden sm:inline text-sm font-mono text-white/80">
-                  tg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
                 </span>
               </div>
               <button 
@@ -511,22 +492,6 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
               >
                 <Copy size={14} />
               </button>
-            </div>
-            
-            {/* Supported Chains */}
-            <div className="mt-4 flex items-center gap-3 text-white/60 text-sm flex-wrap">
-              <Repeat size={14} />
-              <span>Swap from:</span>
-              <div className="flex items-center gap-2">
-                <img src="/logos/usdt.png" alt="USDT" className="w-5 h-5" title="USDT" />
-                <img src="/logos/cngn.png" alt="CNGN" className="w-5 h-5" title="CNGN" />
-                <img src="/logos/ethereum.png" alt="Ethereum" className="w-5 h-5" title="Ethereum" />
-                <img src="/logos/bsc.png" alt="BSC" className="w-5 h-5" title="BSC" />
-                <img src="/logos/polygon.png" alt="Polygon" className="w-5 h-5" title="Polygon" />
-                <img src="/logos/arbitrum.png" alt="Arbitrum" className="w-5 h-5" title="Arbitrum" />
-                <img src="/logos/base.png" alt="Base" className="w-5 h-5" title="Base" />
-                <img src="/logos/tron.png" alt="Tron" className="w-5 h-5" title="Tron" />
-              </div>
             </div>
           </div>
         </div>

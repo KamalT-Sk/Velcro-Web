@@ -2,22 +2,27 @@ import { useState, useEffect } from 'react';
 import { 
   Copy, 
   ExternalLink,
-  TrendingUp,
   Info,
   AlertCircle,
-  Lock,
   ChevronDown,
   Check,
-  Timer,
-  Building2,
-  X,
   ArrowDownLeft,
   ArrowUpRight,
-  Repeat,
   Wallet,
-  CircleDollarSign,
-  MessageCircle,
-  RefreshCw
+  RefreshCw,
+  Timer,
+  Building2,
+  Landmark,
+  Send,
+  History,
+  ArrowRightLeft,
+  X,
+  Hash,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,139 +30,170 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import type { UserKYC } from '@/App';
 
-interface Token {
-  symbol: string;
-  name: string;
-  balance: number;
-  value: number;
-}
-
-const tokens: Token[] = [
-  { symbol: 'USDC', name: 'USD Coin', balance: 1250.00, value: 1250.00 },
-];
-
-const supportedChains = [
-  { name: 'Solana', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Ethereum', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'BSC', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT', 'CNGN'] },
-  { name: 'Polygon', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Arbitrum', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Base', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Tron', logo: '/images/solana-logo.png', tokens: ['USDT'] },
-];
-
-const supportedTokens = [
+const EXTERNAL_TOKENS = [
   { symbol: 'USDC', name: 'USD Coin', logo: '/images/usdc-logo.png' },
-  { symbol: 'USDT', name: 'Tether', logo: '/images/usdc-logo.png' },
-  { symbol: 'CNGN', name: 'CNGN Stable', logo: '/images/usdc-logo.png' },
+  { symbol: 'USDT', name: 'Tether USD', logo: '/logos/usdt.png' },
+  { symbol: 'CNGN', name: 'CNGN Stable', logo: '/logos/cngn.png' },
 ];
 
-interface CryptoTransaction {
-  id: number;
-  type: 'buy' | 'sell' | 'swap' | 'receive' | 'send';
-  token?: string;
-  from?: string;
-  to?: string;
+const BLOCKCHAINS = [
+  { name: 'Solana', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Ethereum', logo: '/logos/ethereum.png', tokens: ['USDC', 'USDT'] },
+  { name: 'BSC', logo: '/logos/bsc.png', tokens: ['USDC', 'USDT', 'CNGN'] },
+  { name: 'Polygon', logo: '/logos/polygon.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Arbitrum', logo: '/logos/arbitrum.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Base', logo: '/logos/base.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Tron', logo: '/logos/tron.png', tokens: ['USDT'] },
+];
+
+interface Transaction {
+  id: string;
+  type: 'buy' | 'sell' | 'send' | 'receive';
   amount: number;
-  value: number;
-  date: string;
-  status: 'completed' | 'processing' | 'pending' | 'failed';
-  txHash?: string;
-  fee?: number;
+  token: string;
+  chain?: string;
+  ngnAmount?: number;
+  address?: string;
+  status: 'completed' | 'pending' | 'failed' | 'processing';
+  timestamp: string;
+  reference: string;
+  fee: number;
 }
 
-const recentCryptoTransactions: CryptoTransaction[] = [
-  { id: 1, type: 'buy', token: 'USDC', amount: 500, value: 500, date: 'Today, 10:30 AM', status: 'completed', txHash: '0x7a8b...9c2d', fee: 2.5 },
-  { id: 2, type: 'swap', token: 'USDT', from: 'USDT', to: 'USDC', amount: 200, value: 200, date: 'Yesterday, 3:45 PM', status: 'processing', txHash: '0x3f4e...5a6b', fee: 1.0 },
-  { id: 3, type: 'receive', token: 'USDC', amount: 250, value: 250, from: 'External Wallet', date: 'Mar 28, 2024', status: 'completed', txHash: '0x9g0h...1i2j', fee: 0 },
-  { id: 4, type: 'sell', token: 'USDC', amount: 100, value: 100, date: 'Mar 27, 2024', status: 'failed', fee: 0 },
+const mockTransactions: Transaction[] = [
+  {
+    id: 'tx1',
+    type: 'buy',
+    amount: 500,
+    token: 'USDC',
+    chain: 'Solana',
+    ngnAmount: 750000,
+    status: 'completed',
+    timestamp: '2024-04-07T10:30:00',
+    reference: 'VEL-BUY-001',
+    fee: 2.5,
+  },
+  {
+    id: 'tx2',
+    type: 'sell',
+    amount: 200,
+    token: 'USDC',
+    ngnAmount: 296000,
+    status: 'completed',
+    timestamp: '2024-04-06T14:20:00',
+    reference: 'VEL-SELL-002',
+    fee: 1.0,
+  },
+  {
+    id: 'tx3',
+    type: 'send',
+    amount: 150,
+    token: 'USDC',
+    chain: 'Ethereum',
+    address: '0x1234...5678',
+    status: 'completed',
+    timestamp: '2024-04-05T09:15:00',
+    reference: 'VEL-SEND-003',
+    fee: 0.75,
+  },
 ];
+
+interface OneTimeAddress {
+  address: string;
+  chain: string;
+  token: string;
+  expiresAt: number;
+  reference: string;
+}
 
 interface CryptoHubProps {
   userKYC: UserKYC;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TimerType = ReturnType<typeof setInterval>;
 
 export function CryptoHub({ userKYC }: CryptoHubProps) {
-  const [activeTab, setActiveTab] = useState<'wallet' | 'buy' | 'sell' | 'swap'>('wallet');
+  const [activeTab, setActiveTab] = useState<'wallet' | 'buy' | 'sell' | 'send' | 'history'>('wallet');
   const [showBalance, setShowBalance] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  
+  const [solanaBalance, setSolanaBalance] = useState(1250.00);
+  const solanaAddress = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+  
+  const buyRate = 1500;
+  const sellRate = 1480;
   
   // BUY state
-  const [buyDestination, setBuyDestination] = useState<'external' | 'main'>('external');
-  const [buyToken, setBuyToken] = useState('USDC');
-  const [buyChain, setBuyChain] = useState('Ethereum');
-  const [buyExternalAddress, setBuyExternalAddress] = useState('');
+  const [buyMode, setBuyMode] = useState<'main' | 'external'>('main');
   const [buyAmount, setBuyAmount] = useState('');
+  const [buyExternalToken, setBuyExternalToken] = useState('USDC');
+  const [buyExternalChain, setBuyExternalChain] = useState('Ethereum');
+  const [buyExternalAddress, setBuyExternalAddress] = useState('');
   const [showBuyTokenSelect, setShowBuyTokenSelect] = useState(false);
   const [showBuyChainSelect, setShowBuyChainSelect] = useState(false);
+  const [buyOneTimeAddress, setBuyOneTimeAddress] = useState<OneTimeAddress | null>(null);
+  const [buyTimeLeft, setBuyTimeLeft] = useState(1800);
+  const [isGeneratingBuyAddress, setIsGeneratingBuyAddress] = useState(false);
   
   // SELL state
-  const [sellSource, setSellSource] = useState<'main' | 'external'>('main');
+  const [sellMode, setSellMode] = useState<'main' | 'external'>('main');
   const [sellAmount, setSellAmount] = useState('');
   const [sellNGNDestination, setSellNGNDestination] = useState<'main' | 'external'>('main');
-  const [externalSellToken, setExternalSellToken] = useState('USDC');
-  const [externalSellChain, setExternalSellChain] = useState('Ethereum');
-  const [externalSellTempAddress, setExternalSellTempAddress] = useState('');
-  const [externalSellTimeLeft, setExternalSellTimeLeft] = useState(1800);
-  const [externalSellGenerated, setExternalSellGenerated] = useState(false);
-  const [showExternalSellTokenSelect, setShowExternalSellTokenSelect] = useState(false);
-  const [showExternalSellChainSelect, setShowExternalSellChainSelect] = useState(false);
+  const [sellExternalToken, setSellExternalToken] = useState('USDC');
+  const [sellExternalChain, setSellExternalChain] = useState('Ethereum');
+  const [showSellTokenSelect, setShowSellTokenSelect] = useState(false);
+  const [showSellChainSelect, setShowSellChainSelect] = useState(false);
+  const [externalBankName, setExternalBankName] = useState('');
+  const [externalAccountNumber, setExternalAccountNumber] = useState('');
+  const [externalAccountName, setExternalAccountName] = useState('');
+  const [sellOneTimeAddress, setSellOneTimeAddress] = useState<OneTimeAddress | null>(null);
+  const [sellTimeLeft, setSellTimeLeft] = useState(1800);
+  const [isGeneratingSellAddress, setIsGeneratingSellAddress] = useState(false);
   
-  // SWAP state
-  const [swapFromToken, setSwapFromToken] = useState('USDT');
-  const [swapFromChain, setSwapFromChain] = useState('Ethereum');
-  const [swapFromAmount, setSwapFromAmount] = useState('');
-  const [swapToAmount, setSwapToAmount] = useState('');
-  const [swapFromAddress, setSwapFromAddress] = useState('');
-  const [swapTempAddress, setSwapTempAddress] = useState('');
-  const [swapGenerated, setSwapGenerated] = useState(false);
-  const [swapTimeLeft, setSwapTimeLeft] = useState(1800);
-  const [showSwapFromTokenSelect, setShowSwapFromTokenSelect] = useState(false);
-  const [showSwapFromChainSelect, setShowSwapFromChainSelect] = useState(false);
+  // SEND state
+  const [sendToken, setSendToken] = useState('USDC');
+  const [sendChain, setSendChain] = useState('Solana');
+  const [sendAmount, setSendAmount] = useState('');
+  const [sendAddress, setSendAddress] = useState('');
+  const [showSendTokenSelect, setShowSendTokenSelect] = useState(false);
+  const [showSendChainSelect, setShowSendChainSelect] = useState(false);
   
-  // Transaction detail modal
-  const [selectedTransaction, setSelectedTransaction] = useState<CryptoTransaction | null>(null);
+  const remainingLimit = userKYC?.cryptoLimit ? userKYC.cryptoLimit - solanaBalance : 100 - solanaBalance;
 
-  const totalCryptoValue = tokens.reduce((acc, token) => acc + token.value, 0);
-  const remainingLimit = userKYC.cryptoLimit - totalCryptoValue;
-
-  // Buy/Sell rates
-  const buyRate = 1500; // NGN per USDC
-  const sellRate = 1480; // NGN per USDC
-
-  // Timer for external sell address
   useEffect(() => {
     let interval: TimerType;
-    if (externalSellGenerated && externalSellTimeLeft > 0) {
+    if (buyOneTimeAddress && buyTimeLeft > 0) {
       interval = setInterval(() => {
-        setExternalSellTimeLeft((prev) => prev - 1);
+        setBuyTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (externalSellTimeLeft === 0) {
-      setExternalSellGenerated(false);
-      setExternalSellTempAddress('');
+    } else if (buyTimeLeft === 0) {
+      setBuyOneTimeAddress(null);
     }
     return () => clearInterval(interval);
-  }, [externalSellGenerated, externalSellTimeLeft]);
+  }, [buyOneTimeAddress, buyTimeLeft]);
 
-  // Timer for swap address
   useEffect(() => {
     let interval: TimerType;
-    if (swapGenerated && swapTimeLeft > 0) {
+    if (sellOneTimeAddress && sellTimeLeft > 0) {
       interval = setInterval(() => {
-        setSwapTimeLeft((prev) => prev - 1);
+        setSellTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (swapTimeLeft === 0) {
-      setSwapGenerated(false);
-      setSwapTempAddress('');
+    } else if (sellTimeLeft === 0) {
+      setSellOneTimeAddress(null);
     }
     return () => clearInterval(interval);
-  }, [swapGenerated, swapTimeLeft]);
+  }, [sellOneTimeAddress, sellTimeLeft]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText('7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU');
-    toast.success('Wallet address copied!');
+    navigator.clipboard.writeText(solanaAddress);
+    toast.success('Solana address copied!');
+  };
+
+  const copyOneTimeAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast.success('Address copied!');
   };
 
   const formatTime = (seconds: number) => {
@@ -168,280 +204,460 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
 
   const calculateFee = (amount: number) => amount * 0.005;
 
-  const calculateSwapOutput = (input: string) => {
-    const inputNum = Number(input);
-    if (!inputNum) return '';
-    const fee = calculateFee(inputNum);
-    return (inputNum - fee).toFixed(2);
+  const formatDate = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const handleSwapFromChange = (value: string) => {
-    setSwapFromAmount(value);
-    setSwapToAmount(calculateSwapOutput(value));
+  const formatTimeOnly = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // BUY: User buys crypto to external wallet OR to main wallet
-  const handleBuy = () => {
+  const generateBuyOneTimeAddress = async () => {
+    const amount = Number(buyAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (!buyExternalAddress) {
+      toast.error('Please enter your external wallet address');
+      return;
+    }
+
+    setIsGeneratingBuyAddress(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const prefixes: Record<string, string> = {
+      'Solana': '7xK', 'Ethereum': '0x', 'BSC': '0x', 'Polygon': '0x',
+      'Arbitrum': '0x', 'Base': '0x', 'Tron': 'T',
+    };
+    const prefix = prefixes[buyExternalChain] || '0x';
+    const randomChars = Array(40).fill(0).map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+    
+    const newAddress: OneTimeAddress = {
+      address: prefix + randomChars,
+      chain: buyExternalChain,
+      token: buyExternalToken,
+      expiresAt: Date.now() + 1800000,
+      reference: 'VEL-BUY-' + Date.now().toString(36).toUpperCase(),
+    };
+    
+    setBuyOneTimeAddress(newAddress);
+    setBuyTimeLeft(1800);
+    setIsGeneratingBuyAddress(false);
+    toast.success(`One-time ${buyExternalToken} address generated on ${buyExternalChain}`);
+  };
+
+  const generateSellOneTimeAddress = async () => {
+    const amount = Number(sellAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (sellNGNDestination === 'external') {
+      if (!externalBankName || !externalAccountNumber || !externalAccountName) {
+        toast.error('Please fill in all bank details');
+        return;
+      }
+    }
+
+    setIsGeneratingSellAddress(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const prefixes: Record<string, string> = {
+      'Solana': '7xK', 'Ethereum': '0x', 'BSC': '0x', 'Polygon': '0x',
+      'Arbitrum': '0x', 'Base': '0x', 'Tron': 'T',
+    };
+    const prefix = prefixes[sellExternalChain] || '0x';
+    const randomChars = Array(40).fill(0).map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+    
+    const newAddress: OneTimeAddress = {
+      address: prefix + randomChars,
+      chain: sellExternalChain,
+      token: sellExternalToken,
+      expiresAt: Date.now() + 1800000,
+      reference: 'VEL-SELL-' + Date.now().toString(36).toUpperCase(),
+    };
+    
+    setSellOneTimeAddress(newAddress);
+    setSellTimeLeft(1800);
+    setIsGeneratingSellAddress(false);
+    toast.success(`Send ${sellExternalToken} to this address within 30 minutes`);
+  };
+
+  const handleBuyToMain = () => {
     const amount = Number(buyAmount);
     if (!amount || amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
     
-    if (buyDestination === 'external') {
-      if (!buyExternalAddress) {
-        toast.error('Please enter your external wallet address');
-        return;
-      }
-      toast.success(`Buying ${amount} ${buyToken} on ${buyChain} to your external wallet: ${buyExternalAddress}`);
-    } else {
-      toast.success(`Buying ${amount} USDC to your main Solana wallet!`);
-    }
-    setBuyAmount('');
-    setBuyExternalAddress('');
+    const fee = calculateFee(amount);
+    const newTx: Transaction = {
+      id: Date.now().toString(),
+      type: 'buy',
+      amount,
+      token: 'USDC',
+      chain: 'Solana',
+      ngnAmount: amount * buyRate,
+      status: 'pending',
+      timestamp: new Date().toISOString(),
+      reference: 'VEL-BUY-' + Date.now().toString(36).toUpperCase(),
+      fee,
+    };
+    
+    setTransactions([newTx, ...transactions]);
+    toast.success(`Processing purchase of ${amount} USDC...`);
+    setTimeout(() => {
+      setSolanaBalance(prev => prev + amount);
+      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+      toast.success(`${amount} USDC credited!`);
+      setBuyAmount('');
+    }, 2000);
   };
 
-  // SELL from main wallet: Sell USDC on Solana to NGN
-  const handleMainSell = () => {
+  const handleSellFromMain = () => {
     const amount = Number(sellAmount);
     if (!amount || amount <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
-    if (amount > totalCryptoValue) {
+    if (amount > solanaBalance) {
       toast.error('Insufficient USDC balance');
       return;
     }
-    if (userKYC.tier === 'none' && amount > remainingLimit) {
-      toast.error(`Exceeds your $${userKYC.cryptoLimit} limit. Complete KYC for higher limits.`);
+    
+    const tier = userKYC?.tier || 'none';
+    const cryptoLimit = userKYC?.cryptoLimit || 100;
+    if (tier === 'none' && amount > cryptoLimit - solanaBalance + amount) {
+      toast.error(`Exceeds your $${cryptoLimit} limit. Complete KYC for higher limits.`);
       return;
     }
-    
-    const destination = sellNGNDestination === 'main' ? 'main NGN account' : 'external NGN account';
+
     const fee = calculateFee(amount);
-    toast.success(`Selling $${amount} USDC from main wallet. Fee: $${fee.toFixed(2)} (0.5%). NGN will be credited to your ${destination}.`);
-    setSellAmount('');
-  };
-
-  // Generate temporary address for external sell
-  const generateExternalSellAddress = () => {
-    const prefixes: Record<string, string> = {
-      'Solana': '7xK',
-      'Ethereum': '0x',
-      'BSC': '0x',
-      'Polygon': '0x',
-      'Arbitrum': '0x',
-      'Base': '0x',
-      'Tron': 'T',
+    const newTx: Transaction = {
+      id: Date.now().toString(),
+      type: 'sell',
+      amount,
+      token: 'USDC',
+      ngnAmount: amount * sellRate,
+      status: 'processing',
+      timestamp: new Date().toISOString(),
+      reference: 'VEL-SELL-' + Date.now().toString(36).toUpperCase(),
+      fee,
     };
-    const prefix = prefixes[externalSellChain] || '0x';
-    const randomChars = Array(40).fill(0).map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
-    const tempAddr = prefix + randomChars;
     
-    setExternalSellTempAddress(tempAddr);
-    setExternalSellGenerated(true);
-    setExternalSellTimeLeft(1800);
-    toast.success(`Temporary ${externalSellToken} address generated on ${externalSellChain}. Expires in 30 minutes.`);
+    setTransactions([newTx, ...transactions]);
+    const destination = sellNGNDestination === 'main' ? 'main NGN account' : 'external NGN account';
+    
+    toast.success(`Selling ${amount} USDC...`);
+    setTimeout(() => {
+      setSolanaBalance(prev => prev - amount);
+      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+      toast.success(`₦${(amount * sellRate).toLocaleString()} credited to ${destination}!`);
+      setSellAmount('');
+    }, 2000);
   };
 
-  // Generate temporary address for swap
-  const generateSwapAddress = () => {
-    if (!swapFromAddress) {
-      toast.error('Please enter your external wallet address');
+  const handleSend = () => {
+    const amount = Number(sendAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
       return;
     }
-    const prefixes: Record<string, string> = {
-      'Solana': '7xK',
-      'Ethereum': '0x',
-      'BSC': '0x',
-      'Polygon': '0x',
-      'Arbitrum': '0x',
-      'Base': '0x',
-      'Tron': 'T',
+    if (amount > solanaBalance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+    if (!sendAddress) {
+      toast.error('Please enter recipient address');
+      return;
+    }
+
+    const fee = calculateFee(amount);
+    const newTx: Transaction = {
+      id: Date.now().toString(),
+      type: 'send',
+      amount,
+      token: sendToken,
+      chain: sendChain,
+      address: sendAddress,
+      status: 'processing',
+      timestamp: new Date().toISOString(),
+      reference: 'VEL-SEND-' + Date.now().toString(36).toUpperCase(),
+      fee,
     };
-    const prefix = prefixes[swapFromChain] || '0x';
-    const randomChars = Array(40).fill(0).map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
-    const tempAddr = prefix + randomChars;
     
-    setSwapTempAddress(tempAddr);
-    setSwapGenerated(true);
-    setSwapTimeLeft(1800);
-    toast.success(`Temporary deposit address generated. Send ${swapFromToken} from ${swapFromAddress} to this address.`);
+    setTransactions([newTx, ...transactions]);
+    toast.success(`Sending ${amount} ${sendToken}...`);
+    setTimeout(() => {
+      setSolanaBalance(prev => prev - amount);
+      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+      toast.success(`${amount} ${sendToken} sent!`);
+      setSendAmount('');
+      setSendAddress('');
+    }, 2000);
   };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'buy':
-        return <ArrowDownLeft size={18} className="text-green-600" />;
-      case 'sell':
-        return <ArrowUpRight size={18} className="text-red-600" />;
-      case 'receive':
-        return <CircleDollarSign size={18} className="text-blue-600" />;
-      case 'swap':
-        return <Repeat size={18} className="text-purple-600" />;
-      default:
-        return <CircleDollarSign size={18} className="text-gray-600" />;
+      case 'buy': return <ArrowDownLeft size={18} className="text-green-600" />;
+      case 'sell': return <ArrowUpRight size={18} className="text-red-600" />;
+      case 'send': return <Send size={18} className="text-blue-600" />;
+      case 'receive': return <ArrowDownLeft size={18} className="text-purple-600" />;
+      default: return <ArrowRightLeft size={18} className="text-gray-600" />;
     }
   };
 
   const getTransactionBg = (type: string) => {
     switch (type) {
-      case 'buy':
-        return 'bg-green-100';
-      case 'sell':
-        return 'bg-red-100';
-      case 'receive':
-        return 'bg-blue-100';
-      case 'swap':
-        return 'bg-purple-100';
-      default:
-        return 'bg-gray-100';
+      case 'buy': return 'bg-green-100';
+      case 'sell': return 'bg-red-100';
+      case 'send': return 'bg-blue-100';
+      case 'receive': return 'bg-purple-100';
+      default: return 'bg-gray-100';
     }
+  };
+
+  // Transaction Detail Modal
+  const TransactionDetailModal = () => {
+    if (!selectedTransaction) return null;
+    const tx = selectedTransaction;
+
+    const copyToClipboard = (text: string, label: string) => {
+      navigator.clipboard.writeText(text);
+      toast.success(`${label} copied!`);
+    };
+
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case 'completed': return <CheckCircle2 size={24} className="text-green-600" />;
+        case 'failed': return <XCircle size={24} className="text-red-600" />;
+        case 'pending': return <Clock size={24} className="text-amber-600" />;
+        case 'processing': return <RefreshCw size={24} className="text-blue-600 animate-spin" />;
+        default: return <AlertTriangle size={24} className="text-gray-600" />;
+      }
+    };
+
+    const getStatusBg = (status: string) => {
+      switch (status) {
+        case 'completed': return 'bg-green-100';
+        case 'failed': return 'bg-red-100';
+        case 'pending': return 'bg-amber-100';
+        case 'processing': return 'bg-blue-100';
+        default: return 'bg-gray-100';
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedTransaction(null)} />
+        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-display font-bold text-gray-900">Transaction Details</h2>
+              <button onClick={() => setSelectedTransaction(null)} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className={`p-4 rounded-xl flex items-center gap-3 ${getStatusBg(tx.status)}`}>
+              {getStatusIcon(tx.status)}
+              <div>
+                <p className="font-semibold text-gray-900 capitalize">{tx.status}</p>
+                <p className="text-sm text-gray-600">
+                  {tx.status === 'completed' ? 'Transaction completed' : 
+                   tx.status === 'pending' ? 'Waiting for confirmation' :
+                   tx.status === 'processing' ? 'Processing' : 'Transaction failed'}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center p-4 bg-gray-50 rounded-xl">
+              <p className="text-sm text-gray-500 mb-1">
+                {tx.type === 'send' ? 'Amount Sent' : tx.type === 'receive' ? 'Amount Received' : tx.type === 'buy' ? 'Amount Bought' : 'Amount Sold'}
+              </p>
+              <p className="text-3xl font-display font-bold text-gray-900">
+                {tx.type === 'sell' || tx.type === 'send' ? '-' : '+'}{tx.amount} {tx.token}
+              </p>
+              {tx.ngnAmount && <p className="text-gray-500 text-sm mt-1">≈ ₦{tx.ngnAmount.toLocaleString()} NGN</p>}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Reference</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-mono">{tx.reference}</span>
+                  <button onClick={() => copyToClipboard(tx.reference, 'Reference')} className="p-1 hover:bg-gray-200 rounded">
+                    <Copy size={14} className="text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Type</span>
+                <span className="text-sm font-medium capitalize">{tx.type}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Token</span>
+                <div className="flex items-center gap-2">
+                  <img src={EXTERNAL_TOKENS.find(t => t.symbol === tx.token)?.logo} alt={tx.token} className="w-5 h-5" />
+                  <span className="text-sm font-medium">{tx.token}</span>
+                </div>
+              </div>
+
+              {tx.chain && (
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Blockchain</span>
+                  <div className="flex items-center gap-2">
+                    <img src={BLOCKCHAINS.find(c => c.name === tx.chain)?.logo} alt={tx.chain} className="w-5 h-5" />
+                    <span className="text-sm font-medium">{tx.chain}</span>
+                  </div>
+                </div>
+              )}
+
+              {tx.address && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600 block mb-2">{tx.type === 'send' ? 'Recipient' : 'Sender'}</span>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-sm font-mono break-all">{tx.address}</code>
+                    <button onClick={() => copyToClipboard(tx.address!, 'Address')} className="p-2 hover:bg-gray-200 rounded">
+                      <Copy size={16} className="text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Date</span>
+                <span className="text-sm">{formatDate(tx.timestamp)}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Time</span>
+                <span className="text-sm">{formatTimeOnly(tx.timestamp)}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Fee (0.5%)</span>
+                <span className="text-sm font-medium">${tx.fee.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-gray-900">Stable Coin Hub</h1>
-          <p className="text-gray-500 text-sm">USDC on Solana - Your main digital asset</p>
+        <div className="flex items-center gap-3">
+          <img src="/images/solana-logo.png" alt="Solana" className="w-10 h-10" />
+          <div>
+            <h1 className="text-2xl font-display font-bold text-gray-900">Solana Stable Hub</h1>
+            <p className="text-gray-500 text-sm">Powered by Solana blockchain</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
-          <Wallet size={16} className="text-purple-600" />
-          <span className="text-xs text-purple-700 font-medium">Powered by Solana</span>
-        </div>
+        <button
+          onClick={() => { setIsRefreshing(true); setTimeout(() => setIsRefreshing(false), 1000); }}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-xl"
+        >
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+          <span className="text-sm font-medium">Refresh</span>
+        </button>
       </div>
 
-      {/* Non-KYC Limit Banner */}
-      {userKYC.tier === 'none' && (
+      {/* KYC Banner */}
+      {userKYC?.tier === 'none' && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex items-start gap-3">
             <AlertCircle size={20} className="text-amber-600 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-amber-800">Crypto Limits Apply</p>
+              <p className="text-sm font-medium text-amber-800">Crypto Trading Limits Apply</p>
               <p className="text-xs text-amber-600 mt-1">
-                You can trade up to <span className="font-semibold">${userKYC.cryptoLimit}</span> in crypto without KYC. 
-                Remaining: <span className="font-semibold">${remainingLimit.toFixed(2)}</span>
+                Limit: ${userKYC?.cryptoLimit || 100} | Used: ${solanaBalance.toFixed(2)} | Remaining: ${Math.max(0, remainingLimit).toFixed(2)}
               </p>
             </div>
-            <button className="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-800 text-xs font-medium rounded-lg transition-colors">
-              Upgrade
-            </button>
           </div>
         </div>
       )}
 
-      {/* Buy/Sell Rates Banner */}
-      <div className="p-4 bg-gradient-to-r from-green-50 to-red-50 border border-gray-100 rounded-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={18} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">Current Rates</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <ArrowDownLeft size={16} className="text-green-600" />
-              <span className="text-sm font-medium text-green-700">Buy: ₦{buyRate.toLocaleString()}</span>
-            </div>
-            <div className="w-px h-4 bg-gray-300" />
-            <div className="flex items-center gap-2">
-              <ArrowUpRight size={16} className="text-red-600" />
-              <span className="text-sm font-medium text-red-700">Sell: ₦{sellRate.toLocaleString()}</span>
-            </div>
-          </div>
+      {/* Main Card */}
+      <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
         </div>
-      </div>
-
-      {/* Main Crypto Card - USDC Only */}
-      <div className="usdc-card rounded-2xl p-6 text-white relative overflow-hidden">
+        
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <CircleDollarSign size={32} className="text-white" />
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                <img src="/images/usdc-logo.png" alt="USDC" className="w-10 h-10" />
               </div>
               <div>
-                <p className="text-white/70 text-sm">USDC Balance</p>
-                <p className="text-3xl font-display font-bold">
-                  {showBalance ? `$${totalCryptoValue.toLocaleString()}` : '****'}
-                </p>
-                <p className="text-white/60 text-sm">≈ ₦1,875,000 NGN</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <img src="/images/solana-logo.png" alt="Solana" className="w-5 h-5" />
+                  <span className="text-white/70 text-sm">USDC on Solana</span>
+                </div>
+                <p className="text-4xl font-display font-bold">{showBalance ? `$${solanaBalance.toLocaleString()}` : '****'}</p>
+                <p className="text-white/60 text-sm">≈ ₦{(solanaBalance * 1500).toLocaleString()} NGN</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1.5 bg-white/20 rounded-lg backdrop-blur-sm flex items-center gap-2">
-                <Wallet size={14} className="text-white/80" />
-                <span className="text-xs font-medium">Solana</span>
-              </div>
-              <button 
-                onClick={() => setShowBalance(!showBalance)}
-                className="p-2.5 hover:bg-white/10 rounded-xl transition-colors"
-              >
-                <TrendingUp size={18} className="text-white/70" />
-              </button>
-            </div>
+            <button onClick={() => setShowBalance(!showBalance)} className="p-2.5 hover:bg-white/10 rounded-xl">
+              <Info size={20} className="text-white/70" />
+            </button>
           </div>
 
-          {/* Wallet Address */}
-          <div className="bg-white/10 rounded-xl p-4 mb-4 backdrop-blur-sm">
+          <div className="bg-white/10 rounded-xl p-4 mb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Your Solana Wallet Address</p>
-                <p className="font-mono text-sm hidden sm:block">7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU</p>
-                <p className="font-mono text-sm sm:hidden">7xKX...sAsU</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/60 text-xs mb-1">Your Solana Address</p>
+                <p className="font-mono text-sm truncate">{solanaAddress}</p>
               </div>
-              <button 
-                onClick={copyAddress}
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-              >
+              <button onClick={copyAddress} className="p-2 hover:bg-white/10 rounded-xl ml-2">
                 <Copy size={18} />
               </button>
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-4 gap-2">
-            <button 
-              onClick={() => setActiveTab('buy')}
-              className="flex flex-col items-center gap-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
-            >
+            <button onClick={() => setActiveTab('buy')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
               <ArrowDownLeft size={20} />
-              <span className="text-xs">Buy</span>
+              <span className="text-xs font-medium">Buy</span>
             </button>
-            <button 
-              onClick={() => setActiveTab('sell')}
-              className="flex flex-col items-center gap-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
-            >
+            <button onClick={() => setActiveTab('sell')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
               <ArrowUpRight size={20} />
-              <span className="text-xs">Sell</span>
+              <span className="text-xs font-medium">Sell</span>
             </button>
-            <button 
-              onClick={() => setActiveTab('swap')}
-              className="flex flex-col items-center gap-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
-            >
-              <Repeat size={20} />
-              <span className="text-xs">Swap</span>
+            <button onClick={() => setActiveTab('send')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+              <Send size={20} />
+              <span className="text-xs font-medium">Send Out</span>
             </button>
-            <button 
-              onClick={() => toast.info('Send feature coming soon!')}
-              className="flex flex-col items-center gap-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
-            >
-              <ExternalLink size={20} />
-              <span className="text-xs">Send</span>
+            <button onClick={() => setActiveTab('history')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+              <History size={20} />
+              <span className="text-xs font-medium">History</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
-        <Info size={18} className="text-blue-600 mt-0.5" />
-        <div>
-          <p className="text-sm font-medium text-blue-800">USDC on Solana is your main asset</p>
-          <p className="text-xs text-blue-600 mt-1">
-            All crypto transactions have a 0.5% processing fee with no cap.
-          </p>
+      {/* Rates Banner */}
+      <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-gray-500">Buy: <span className="font-semibold text-green-600">₦{buyRate.toLocaleString()}</span></span>
+            <span className="text-gray-500">Sell: <span className="font-semibold text-red-600">₦{sellRate.toLocaleString()}</span></span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Info size={12} />
+            <span>0.5% processing fee with no cap</span>
+          </div>
         </div>
       </div>
 
@@ -451,7 +667,8 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
           { id: 'wallet', label: 'Wallet', icon: Wallet },
           { id: 'buy', label: 'Buy', icon: ArrowDownLeft },
           { id: 'sell', label: 'Sell', icon: ArrowUpRight },
-          { id: 'swap', label: 'Swap', icon: Repeat },
+          { id: 'send', label: 'Send Out', icon: Send },
+          { id: 'history', label: 'History', icon: History },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -468,53 +685,38 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
         })}
       </div>
 
-      {/* Tab Content */}
+      {/* WALLET TAB */}
       {activeTab === 'wallet' && (
         <div className="space-y-4">
           <h2 className="text-lg font-display font-semibold text-gray-900">Your Assets</h2>
-          <div className="grid gap-3">
-            {tokens.map((token) => (
-              <div 
-                key={token.symbol}
-                className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between hover:border-gray-200 hover:shadow-soft transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <img src="/logos/usdc.png" alt="USDC" className="w-12 h-12 rounded-xl" />
-                  <div>
-                    <p className="font-semibold text-gray-900">{token.symbol}</p>
-                    <p className="text-gray-500 text-sm">{token.name}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
-                        <img src="/logos/solana.png" alt="Solana" className="w-3 h-3" />
-                        Solana
-                      </span>
-                    </div>
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <img src="/images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">USDC</p>
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <span>Solana</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">
-                    {showBalance ? `$${token.value.toLocaleString()}` : '****'}
-                  </p>
-                  <p className="text-gray-500 text-sm">
-                    {token.balance.toLocaleString()} {token.symbol}
-                  </p>
-                </div>
               </div>
-            ))}
+              <div className="text-right">
+                <p className="font-semibold text-gray-900">${solanaBalance.toLocaleString()}</p>
+                <p className="text-sm text-gray-500">{solanaBalance.toLocaleString()} USDC</p>
+              </div>
+            </div>
           </div>
 
-          {/* Supported Chains */}
           <div className="mt-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">Supported Chains</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">Supported Networks</h3>
             <div className="flex flex-wrap gap-2">
-              {supportedChains.map((chain) => (
-                <div 
-                  key={chain.name}
-                  className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-100 rounded-xl"
-                >
+              {BLOCKCHAINS.map((chain) => (
+                <div key={chain.name} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-100 rounded-xl">
                   <img src={chain.logo} alt={chain.name} className="w-5 h-5" />
                   <span className="text-sm text-gray-700">{chain.name}</span>
-                  <span className="text-xs text-gray-400">{chain.tokens.join(', ')}</span>
                 </div>
               ))}
             </div>
@@ -522,871 +724,373 @@ export function CryptoHub({ userKYC }: CryptoHubProps) {
         </div>
       )}
 
-      {/* BUY */}
+      {/* BUY TAB */}
       {activeTab === 'buy' && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <ArrowDownLeft size={20} className="text-green-600" />
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-6">Buy Crypto</h2>
+          
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button
+              onClick={() => { setBuyMode('main'); setBuyOneTimeAddress(null); }}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${buyMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <img src="/images/solana-logo.png" alt="Solana" className="w-6 h-6" />
+                <span className={`font-medium ${buyMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>To Solana Wallet</span>
+              </div>
+              <p className="text-xs text-gray-500">USDC directly to main wallet</p>
+            </button>
+            <button
+              onClick={() => { setBuyMode('external'); setBuyOneTimeAddress(null); }}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${buyMode === 'external' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet size={20} className={buyMode === 'external' ? 'text-purple-600' : 'text-gray-400'} />
+                <span className={`font-medium ${buyMode === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>To External Wallet</span>
+              </div>
+              <p className="text-xs text-gray-500">Any chain, any wallet</p>
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <Label className="text-sm text-gray-600 mb-2 block">Amount (USD)</Label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
+              <Input type="number" placeholder="0.00" value={buyAmount}
+                onChange={(e) => { setBuyAmount(e.target.value); setBuyOneTimeAddress(null); }}
+                className="pl-10 py-6 text-lg rounded-xl" />
             </div>
-            <div>
-              <h2 className="text-lg font-display font-semibold text-gray-900">Buy Crypto</h2>
-              <p className="text-gray-500 text-sm">Purchase crypto to your wallet</p>
+            {buyAmount && (
+              <div className="mt-2 space-y-1">
+                <p className="text-purple-600 font-medium text-sm">≈ ₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN</p>
+                <p className="text-xs text-gray-500">Fee (0.5%): ${calculateFee(Number(buyAmount)).toFixed(2)}</p>
+              </div>
+            )}
+          </div>
+
+          {buyMode === 'external' && (
+            <div className="space-y-4 mb-6">
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Select Token</Label>
+                <button onClick={() => setShowBuyTokenSelect(!showBuyTokenSelect)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === buyExternalToken)?.logo} alt={buyExternalToken} className="w-8 h-8" />
+                    <span className="font-medium">{buyExternalToken}</span>
+                  </div>
+                  <ChevronDown size={18} className="text-gray-400" />
+                </button>
+                {showBuyTokenSelect && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                    {EXTERNAL_TOKENS.map((token) => (
+                      <button key={token.symbol} onClick={() => { setBuyExternalToken(token.symbol); setShowBuyTokenSelect(false); }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                        <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
+                        <span className="font-medium">{token.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Select Blockchain</Label>
+                <button onClick={() => setShowBuyChainSelect(!showBuyChainSelect)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <img src={BLOCKCHAINS.find(c => c.name === buyExternalChain)?.logo} alt={buyExternalChain} className="w-6 h-6" />
+                    <span className="font-medium">{buyExternalChain}</span>
+                  </div>
+                  <ChevronDown size={18} className="text-gray-400" />
+                </button>
+                {showBuyChainSelect && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                    {BLOCKCHAINS.filter(c => c.tokens.includes(buyExternalToken)).map((chain) => (
+                      <button key={chain.name} onClick={() => { setBuyExternalChain(chain.name); setShowBuyChainSelect(false); }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                        <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
+                        <span className="font-medium">{chain.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Your External Wallet Address</Label>
+                <Input type="text" placeholder={`Enter ${buyExternalChain} address`} value={buyExternalAddress}
+                  onChange={(e) => { setBuyExternalAddress(e.target.value); setBuyOneTimeAddress(null); }}
+                  className="py-4 rounded-xl font-mono text-sm" />
+              </div>
+
+              {!buyOneTimeAddress && (
+                <Button onClick={generateBuyOneTimeAddress} disabled={isGeneratingBuyAddress || !buyAmount || !buyExternalAddress}
+                  className="w-full bg-purple-600 text-white h-12 rounded-xl">
+                  {isGeneratingBuyAddress ? <RefreshCw size={18} className="animate-spin mr-2" /> : <Wallet size={18} className="mr-2" />}
+                  Generate One-Time Address
+                </Button>
+              )}
+
+              {buyOneTimeAddress && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Timer size={18} className="text-amber-600" />
+                    <span className="font-medium text-amber-800">Expires in {formatTime(buyTimeLeft)}</span>
+                  </div>
+                  <p className="text-xs text-amber-700 mb-2">Send {buyExternalToken} ({buyExternalChain}) to:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-white p-3 rounded-lg font-mono text-sm break-all">{buyOneTimeAddress.address}</code>
+                    <button onClick={() => copyOneTimeAddress(buyOneTimeAddress.address)} className="p-2 hover:bg-amber-200 rounded-lg">
+                      <Copy size={18} className="text-amber-700" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">Ref: {buyOneTimeAddress.reference}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {buyMode === 'main' && (
+            <Button onClick={handleBuyToMain} disabled={!buyAmount || Number(buyAmount) <= 0}
+              className="w-full bg-purple-600 text-white h-12 rounded-xl">
+              Buy USDC to Solana Wallet
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* SELL TAB */}
+      {activeTab === 'sell' && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-6">Sell Crypto</h2>
+          
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button onClick={() => { setSellMode('main'); setSellOneTimeAddress(null); }}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${sellMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <img src="/images/solana-logo.png" alt="Solana" className="w-6 h-6" />
+                <span className={`font-medium ${sellMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>From Solana</span>
+              </div>
+              <p className="text-xs text-gray-500">Sell from main wallet</p>
+              <p className="text-xs text-purple-600 mt-1">${solanaBalance.toLocaleString()} available</p>
+            </button>
+            <button onClick={() => { setSellMode('external'); setSellOneTimeAddress(null); }}
+              className={`p-4 rounded-xl border-2 transition-all text-left ${sellMode === 'external' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet size={20} className={sellMode === 'external' ? 'text-purple-600' : 'text-gray-400'} />
+                <span className={`font-medium ${sellMode === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>From External</span>
+              </div>
+              <p className="text-xs text-gray-500">Send from any blockchain</p>
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <Label className="text-sm text-gray-600 mb-2 block">Amount ({sellMode === 'main' ? 'USDC' : sellExternalToken})</Label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
+              <Input type="number" placeholder="0.00" value={sellAmount}
+                onChange={(e) => { setSellAmount(e.target.value); setSellOneTimeAddress(null); }}
+                className="pl-10 py-6 text-lg rounded-xl" />
+            </div>
+            {sellAmount && (
+              <div className="mt-2 space-y-1">
+                <p className="text-purple-600 font-medium text-sm">≈ ₦{(Number(sellAmount) * sellRate).toLocaleString()} NGN</p>
+                <p className="text-xs text-gray-500">Fee (0.5%): ${calculateFee(Number(sellAmount)).toFixed(2)}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="mb-6">
+            <Label className="text-sm text-gray-600 mb-2 block">NGN Destination</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setSellNGNDestination('main')}
+                className={`p-4 rounded-xl border-2 text-left ${sellNGNDestination === 'main' ? 'border-green-500 bg-green-50' : 'border-gray-100'}`}>
+                <Landmark size={18} className={sellNGNDestination === 'main' ? 'text-green-600' : 'text-gray-400'} />
+                <span className={`font-medium ${sellNGNDestination === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>Main NGN Account</span>
+                <p className="text-xs text-gray-500">9PSB - ****6789</p>
+              </button>
+              <button onClick={() => setSellNGNDestination('external')}
+                className={`p-4 rounded-xl border-2 text-left ${sellNGNDestination === 'external' ? 'border-green-500 bg-green-50' : 'border-gray-100'}`}>
+                <Building2 size={18} className={sellNGNDestination === 'external' ? 'text-green-600' : 'text-gray-400'} />
+                <span className={`font-medium ${sellNGNDestination === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>External Bank</span>
+                <p className="text-xs text-gray-500">Any Nigerian bank</p>
+              </button>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {/* Destination Selection */}
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Destination</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setBuyDestination('external')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left
-                    ${buyDestination === 'external' 
-                      ? 'border-velcro-green bg-velcro-green/5' 
-                      : 'border-gray-100 hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Wallet size={18} className={buyDestination === 'external' ? 'text-velcro-green' : 'text-gray-400'} />
-                    <span className={`font-medium ${buyDestination === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      External Wallet
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">Any blockchain address</p>
-                </button>
-                <button
-                  onClick={() => setBuyDestination('main')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left
-                    ${buyDestination === 'main' 
-                      ? 'border-velcro-green bg-velcro-green/5' 
-                      : 'border-gray-100 hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <CircleDollarSign size={18} className={buyDestination === 'main' ? 'text-velcro-green' : 'text-gray-400'} />
-                    <span className={`font-medium ${buyDestination === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      Main Wallet
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">USDC on Solana</p>
-                </button>
-              </div>
+          {sellNGNDestination === 'external' && (
+            <div className="space-y-3 p-4 bg-gray-50 rounded-xl mb-6">
+              <Input type="text" placeholder="Bank Name" value={externalBankName} onChange={(e) => setExternalBankName(e.target.value)} className="py-3 rounded-xl" />
+              <Input type="text" placeholder="Account Number" value={externalAccountNumber} onChange={(e) => setExternalAccountNumber(e.target.value)} className="py-3 rounded-xl" />
+              <Input type="text" placeholder="Account Name" value={externalAccountName} onChange={(e) => setExternalAccountName(e.target.value)} className="py-3 rounded-xl" />
             </div>
+          )}
 
-            {/* Token Selection (only for external) */}
-            {buyDestination === 'external' && (
-              <>
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Select Token</Label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowBuyTokenSelect(!showBuyTokenSelect)}
-                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={supportedTokens.find(t => t.symbol === buyToken)?.logo} 
-                          alt={buyToken} 
-                          className="w-8 h-8 rounded-lg" 
-                        />
-                        <span className="font-medium">{buyToken}</span>
-                      </div>
-                      <ChevronDown size={18} className="text-gray-400" />
-                    </button>
-                    
-                    {showBuyTokenSelect && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
-                        {supportedTokens.map((token) => (
-                          <button
-                            key={token.symbol}
-                            onClick={() => {
-                              setBuyToken(token.symbol);
-                              setShowBuyTokenSelect(false);
-                            }}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            <img src={token.logo} alt={token.symbol} className="w-8 h-8 rounded-lg" />
-                            <div className="text-left">
-                              <p className="font-medium text-sm">{token.symbol}</p>
-                              <p className="text-xs text-gray-500">{token.name}</p>
-                            </div>
-                            {buyToken === token.symbol && <Check size={16} className="ml-auto text-velcro-green" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+          {sellMode === 'external' && !sellOneTimeAddress && (
+            <Button onClick={generateSellOneTimeAddress} disabled={isGeneratingSellAddress || !sellAmount}
+              className="w-full bg-purple-600 text-white h-12 rounded-xl mb-4">
+              {isGeneratingSellAddress ? <RefreshCw size={18} className="animate-spin mr-2" /> : <Wallet size={18} className="mr-2" />}
+              Generate Deposit Address
+            </Button>
+          )}
 
-                {/* Chain Selection */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Select Blockchain</Label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowBuyChainSelect(!showBuyChainSelect)}
-                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img src={supportedChains.find(c => c.name === buyChain)?.logo} alt={buyChain} className="w-6 h-6" />
-                        <span className="font-medium">{buyChain}</span>
-                      </div>
-                      <ChevronDown size={18} className="text-gray-400" />
-                    </button>
-                    
-                    {showBuyChainSelect && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-auto">
-                        {supportedChains.filter(c => c.tokens.includes(buyToken)).map((chain) => (
-                          <button
-                            key={chain.name}
-                            onClick={() => {
-                              setBuyChain(chain.name);
-                              setShowBuyChainSelect(false);
-                            }}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
-                            <span className="font-medium text-sm">{chain.name}</span>
-                            {buyChain === chain.name && <Check size={16} className="ml-auto text-velcro-green" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* External Wallet Address */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Your External Wallet Address</Label>
-                  <Input
-                    type="text"
-                    placeholder={`Enter your ${buyChain} address`}
-                    value={buyExternalAddress}
-                    onChange={(e) => setBuyExternalAddress(e.target.value)}
-                    className="py-4 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl font-mono text-sm"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Amount */}
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Amount (USD)</Label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={buyAmount}
-                  onChange={(e) => setBuyAmount(e.target.value)}
-                  className="pl-10 py-6 text-lg focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                />
+          {sellMode === 'external' && sellOneTimeAddress && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Timer size={18} className="text-amber-600" />
+                <span className="font-medium text-amber-800">Send within {formatTime(sellTimeLeft)}</span>
               </div>
-              {buyAmount && (
-                <p className="text-velcro-green font-medium text-sm mt-2">
-                  ≈ ₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN will be debited
-                </p>
+              <p className="text-xs text-amber-700 mb-2">Send exactly <strong>${sellAmount} {sellExternalToken}</strong> to:</p>
+              <div className="flex items-center gap-2 mb-2">
+                <code className="flex-1 bg-white p-3 rounded-lg font-mono text-sm break-all">{sellOneTimeAddress.address}</code>
+                <button onClick={() => copyOneTimeAddress(sellOneTimeAddress.address)} className="p-2 hover:bg-amber-200 rounded-lg">
+                  <Copy size={18} className="text-amber-700" />
+                </button>
+              </div>
+              <p className="text-xs text-amber-600">Network: {sellExternalChain}</p>
+            </div>
+          )}
+
+          {sellMode === 'main' && (
+            <Button onClick={handleSellFromMain} disabled={!sellAmount || Number(sellAmount) <= 0 || Number(sellAmount) > solanaBalance}
+              className="w-full bg-gray-900 text-white h-12 rounded-xl">
+              Sell USDC & Receive NGN
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* SEND TAB */}
+      {activeTab === 'send' && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-6">Send Out Crypto</h2>
+          
+          <div className="space-y-6">
+            <div>
+              <Label className="text-sm text-gray-600 mb-2 block">Token</Label>
+              <button onClick={() => setShowSendTokenSelect(!showSendTokenSelect)}
+                className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <img src={EXTERNAL_TOKENS.find(t => t.symbol === sendToken)?.logo} alt={sendToken} className="w-8 h-8" />
+                  <span className="font-medium">{sendToken}</span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+              {showSendTokenSelect && (
+                <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg">
+                  {EXTERNAL_TOKENS.map((token) => (
+                    <button key={token.symbol} onClick={() => { setSendToken(token.symbol); setShowSendTokenSelect(false); }}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                      <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
+                      <span className="font-medium">{token.symbol}</span>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* Fee Info */}
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-500">Processing Fee (0.5%)</span>
-                <span className="font-medium text-gray-900">
-                  ${buyAmount ? calculateFee(Number(buyAmount)).toFixed(2) : '0.00'}
-                </span>
+            <div>
+              <Label className="text-sm text-gray-600 mb-2 block">Blockchain</Label>
+              <button onClick={() => setShowSendChainSelect(!showSendChainSelect)}
+                className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <img src={BLOCKCHAINS.find(c => c.name === sendChain)?.logo} alt={sendChain} className="w-6 h-6" />
+                  <span className="font-medium">{sendChain}</span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+              {showSendChainSelect && (
+                <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg">
+                  {BLOCKCHAINS.filter(c => c.tokens.includes(sendToken)).map((chain) => (
+                    <button key={chain.name} onClick={() => { setSendChain(chain.name); setShowSendChainSelect(false); }}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                      <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
+                      <span className="font-medium">{chain.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-sm text-gray-600 mb-2 block">Amount</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
+                <Input type="number" placeholder="0.00" value={sendAmount} onChange={(e) => setSendAmount(e.target.value)} className="pl-10 py-6 text-lg rounded-xl" />
               </div>
+              {sendAmount && <p className="text-xs text-gray-500 mt-2">Fee (0.5%): ${calculateFee(Number(sendAmount)).toFixed(2)}</p>}
+            </div>
+
+            <div>
+              <Label className="text-sm text-gray-600 mb-2 block">Recipient Address</Label>
+              <Input type="text" placeholder={`Enter ${sendChain} address`} value={sendAddress} onChange={(e) => setSendAddress(e.target.value)} className="py-4 rounded-xl font-mono text-sm" />
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded-xl">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Total</span>
-                <span className="font-bold text-gray-900">
-                  ${buyAmount ? (Number(buyAmount) + calculateFee(Number(buyAmount))).toFixed(2) : '0.00'}
-                </span>
+                <span className="text-gray-500">Available</span>
+                <span className="font-medium">${solanaBalance.toLocaleString()} USDC</span>
               </div>
             </div>
 
-            <Button 
-              onClick={handleBuy}
-              className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
-            >
-              Buy {buyDestination === 'main' ? 'USDC (Solana)' : `${buyToken} (${buyChain})`}
+            <Button onClick={handleSend} disabled={!sendAmount || Number(sendAmount) <= 0 || !sendAddress || Number(sendAmount) > solanaBalance}
+              className="w-full bg-purple-600 text-white h-12 rounded-xl">
+              <Send size={18} className="mr-2" />
+              Send {sendToken}
             </Button>
           </div>
         </div>
       )}
 
-      {/* SELL */}
-      {activeTab === 'sell' && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-              <ArrowUpRight size={20} className="text-red-600" />
+      {/* HISTORY TAB */}
+      {activeTab === 'history' && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-display font-semibold text-gray-900">Transaction History</h2>
+          
+          {transactions.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
+              <History size={48} className="mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No transactions yet</h3>
+              <p className="text-gray-500 text-sm">Your crypto transactions will appear here</p>
             </div>
-            <div>
-              <h2 className="text-lg font-display font-semibold text-gray-900">Sell Crypto</h2>
-              <p className="text-gray-500 text-sm">Sell crypto and receive NGN</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Source Selection */}
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Source</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSellSource('main')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left
-                    ${sellSource === 'main' 
-                      ? 'border-velcro-green bg-velcro-green/5' 
-                      : 'border-gray-100 hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <CircleDollarSign size={18} className={sellSource === 'main' ? 'text-velcro-green' : 'text-gray-400'} />
-                    <span className={`font-medium ${sellSource === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      Main Wallet
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">USDC on Solana</p>
-                  <p className="text-xs text-velcro-green mt-1">${totalCryptoValue.toLocaleString()} available</p>
-                </button>
-                <button
-                  onClick={() => setSellSource('external')}
-                  className={`p-4 rounded-xl border-2 transition-all text-left
-                    ${sellSource === 'external' 
-                      ? 'border-velcro-green bg-velcro-green/5' 
-                      : 'border-gray-100 hover:border-gray-200'}`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Wallet size={18} className={sellSource === 'external' ? 'text-velcro-green' : 'text-gray-400'} />
-                    <span className={`font-medium ${sellSource === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      External Wallet
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">Send from any blockchain</p>
-                </button>
-              </div>
-            </div>
-
-            {/* MAIN WALLET SELL */}
-            {sellSource === 'main' && (
-              <>
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Amount (USDC)</Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={sellAmount}
-                      onChange={(e) => setSellAmount(e.target.value)}
-                      className="pl-10 py-6 text-lg focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                    />
-                  </div>
-                  <p className="text-gray-500 text-sm mt-2">
-                    ≈ ₦{sellAmount ? (Number(sellAmount) * sellRate).toLocaleString() : '0'} NGN
-                  </p>
-                </div>
-
-                {/* NGN Destination Selection */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">NGN Destination</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setSellNGNDestination('main')}
-                      className={`p-4 rounded-xl border-2 transition-all text-left
-                        ${sellNGNDestination === 'main' 
-                          ? 'border-velcro-green bg-velcro-green/5' 
-                          : 'border-gray-100 hover:border-gray-200'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">🇳🇬</span>
-                        <span className={`font-medium ${sellNGNDestination === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>
-                          Main NGN Account
-                        </span>
+          ) : (
+            <div className="space-y-3">
+              {transactions.map((tx) => (
+                <button key={tx.id} onClick={() => setSelectedTransaction(tx)}
+                  className="w-full bg-white rounded-xl border border-gray-100 p-4 hover:shadow-soft transition-all text-left">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTransactionBg(tx.type)}`}>
+                        {getTransactionIcon(tx.type)}
                       </div>
-                      <p className="text-xs text-gray-500">9PSB - **** 6789</p>
-                    </button>
-                    <button
-                      onClick={() => setSellNGNDestination('external')}
-                      className={`p-4 rounded-xl border-2 transition-all text-left
-                        ${sellNGNDestination === 'external' 
-                          ? 'border-velcro-green bg-velcro-green/5' 
-                          : 'border-gray-100 hover:border-gray-200'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 size={18} className={sellNGNDestination === 'external' ? 'text-velcro-green' : 'text-gray-400'} />
-                        <span className={`font-medium ${sellNGNDestination === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>
-                          External Account
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">Any Nigerian bank</p>
-                    </button>
-                  </div>
-                </div>
-
-                {/* External NGN Account Details */}
-                {sellNGNDestination === 'external' && (
-                  <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Bank Name</Label>
-                      <Input type="text" placeholder="Enter bank name" className="py-3 rounded-xl" />
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Account Number</Label>
-                      <Input type="text" placeholder="Enter account number" className="py-3 rounded-xl" />
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Account Name</Label>
-                      <Input type="text" placeholder="Enter account name" className="py-3 rounded-xl" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Fee Info */}
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-gray-500">Exchange Rate</span>
-                    <span className="font-medium text-gray-900">1 USDC = ₦{sellRate.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Processing Fee (0.5%)</span>
-                    <span className="font-medium text-gray-900">${sellAmount ? calculateFee(Number(sellAmount)).toFixed(2) : '0.00'}</span>
-                  </div>
-                </div>
-
-                {userKYC.tier === 'none' && (
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
-                    <div className="flex items-center gap-2 text-amber-700 text-sm">
-                      <Lock size={14} />
-                      <span>Limit: ${userKYC.cryptoLimit} without KYC</span>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleMainSell}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
-                >
-                  Sell USDC
-                </Button>
-              </>
-            )}
-
-            {/* EXTERNAL WALLET SELL */}
-            {sellSource === 'external' && (
-              <>
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Select Token to Send</Label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowExternalSellTokenSelect(!showExternalSellTokenSelect)}
-                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <CircleDollarSign size={18} className="text-blue-600" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-900 capitalize">{tx.type}</p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium
+                            ${tx.status === 'completed' ? 'bg-green-100 text-green-700' : 
+                              tx.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                              tx.status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                            {tx.status}
+                          </span>
                         </div>
-                        <span className="font-medium">{externalSellToken}</span>
-                      </div>
-                      <ChevronDown size={18} className="text-gray-400" />
-                    </button>
-                    
-                    {showExternalSellTokenSelect && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
-                        {supportedTokens.map((token) => (
-                          <button
-                            key={token.symbol}
-                            onClick={() => {
-                              setExternalSellToken(token.symbol);
-                              setShowExternalSellTokenSelect(false);
-                            }}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <CircleDollarSign size={18} className="text-blue-600" />
-                            </div>
-                            <div className="text-left">
-                              <p className="font-medium text-sm">{token.symbol}</p>
-                              <p className="text-xs text-gray-500">{token.name}</p>
-                            </div>
-                            {externalSellToken === token.symbol && <Check size={16} className="ml-auto text-velcro-green" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">Select Blockchain</Label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowExternalSellChainSelect(!showExternalSellChainSelect)}
-                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img src={supportedChains.find(c => c.name === externalSellChain)?.logo} alt={externalSellChain} className="w-6 h-6" />
-                        <span className="font-medium">{externalSellChain}</span>
-                      </div>
-                      <ChevronDown size={18} className="text-gray-400" />
-                    </button>
-                    
-                    {showExternalSellChainSelect && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-auto">
-                        {supportedChains.filter(c => c.tokens.includes(externalSellToken)).map((chain) => (
-                          <button
-                            key={chain.name}
-                            onClick={() => {
-                              setExternalSellChain(chain.name);
-                              setShowExternalSellChainSelect(false);
-                            }}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
-                            <span className="font-medium text-sm">{chain.name}</span>
-                            {externalSellChain === chain.name && <Check size={16} className="ml-auto text-velcro-green" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* NGN Destination Selection */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-2 block">NGN Destination</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setSellNGNDestination('main')}
-                      className={`p-4 rounded-xl border-2 transition-all text-left
-                        ${sellNGNDestination === 'main' 
-                          ? 'border-velcro-green bg-velcro-green/5' 
-                          : 'border-gray-100 hover:border-gray-200'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">🇳🇬</span>
-                        <span className={`font-medium ${sellNGNDestination === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>
-                          Main NGN Account
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">9PSB - **** 6789</p>
-                    </button>
-                    <button
-                      onClick={() => setSellNGNDestination('external')}
-                      className={`p-4 rounded-xl border-2 transition-all text-left
-                        ${sellNGNDestination === 'external' 
-                          ? 'border-velcro-green bg-velcro-green/5' 
-                          : 'border-gray-100 hover:border-gray-200'}`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Building2 size={18} className={sellNGNDestination === 'external' ? 'text-velcro-green' : 'text-gray-400'} />
-                        <span className={`font-medium ${sellNGNDestination === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>
-                          External Account
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">Any Nigerian bank</p>
-                    </button>
-                  </div>
-                </div>
-
-                {/* External NGN Account Details */}
-                {sellNGNDestination === 'external' && (
-                  <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Bank Name</Label>
-                      <Input type="text" placeholder="Enter bank name" className="py-3 rounded-xl" />
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Account Number</Label>
-                      <Input type="text" placeholder="Enter account number" className="py-3 rounded-xl" />
-                    </div>
-                    <div>
-                      <Label className="text-sm text-gray-600 mb-2 block">Account Name</Label>
-                      <Input type="text" placeholder="Enter account name" className="py-3 rounded-xl" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Generate Temporary Address */}
-                {!externalSellGenerated ? (
-                  <Button 
-                    onClick={generateExternalSellAddress}
-                    className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
-                  >
-                    <RefreshCw size={18} className="mr-2" />
-                    Generate Temporary Address
-                  </Button>
-                ) : (
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-green-800">Temporary Address</span>
-                      <div className="flex items-center gap-1 text-amber-600">
-                        <Timer size={14} />
-                        <span className="text-xs font-medium">{formatTime(externalSellTimeLeft)}</span>
+                        <p className="text-xs text-gray-500">{formatDate(tx.timestamp)} at {formatTimeOnly(tx.timestamp)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 p-3 bg-white rounded-xl">
-                      <span className="flex-1 font-mono text-sm text-gray-700 break-all">{externalSellTempAddress}</span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(externalSellTempAddress);
-                          toast.success('Address copied!');
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-lg"
-                      >
-                        <Copy size={16} className="text-gray-500" />
-                      </button>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{tx.type === 'sell' || tx.type === 'send' ? '-' : '+'}{tx.amount} {tx.token}</p>
+                      {tx.ngnAmount && <p className="text-xs text-gray-500">≈ ₦{tx.ngnAmount.toLocaleString()}</p>}
+                      <p className="text-xs text-gray-400">Fee: ${tx.fee}</p>
                     </div>
-                    <p className="text-xs text-green-700 mt-3">
-                      Send {externalSellToken} on {externalSellChain} to this address. 
-                      Your selected NGN account will be credited instantly upon confirmation.
-                    </p>
                   </div>
-                )}
-
-                {/* Fee Info */}
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-gray-500">Exchange Rate</span>
-                    <span className="font-medium text-gray-900">1 {externalSellToken} = ₦{sellRate.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Processing Fee (0.5%)</span>
-                    <span className="font-medium text-gray-900">No cap</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
-
-      {/* SWAP */}
-      {activeTab === 'swap' && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Repeat size={20} className="text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-display font-semibold text-gray-900">Swap Tokens</h2>
-              <p className="text-gray-500 text-sm">Swap from any chain to your main USDC wallet</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* From Section */}
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm text-gray-600 mb-2 block">From (Your External Wallet)</Label>
-              
-              {/* Token Selection */}
-              <div className="mb-3">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSwapFromTokenSelect(!showSwapFromTokenSelect)}
-                    className="w-full flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-                  >
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <CircleDollarSign size={14} className="text-blue-600" />
-                    </div>
-                    <span className="font-medium text-sm">{swapFromToken}</span>
-                    <ChevronDown size={14} className="text-gray-400 ml-auto" />
-                  </button>
-                  
-                  {showSwapFromTokenSelect && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      {supportedTokens.map((token) => (
-                        <button
-                          key={token.symbol}
-                          onClick={() => {
-                            setSwapFromToken(token.symbol);
-                            setShowSwapFromTokenSelect(false);
-                          }}
-                          className="w-full flex items-center gap-2 p-2 hover:bg-gray-50"
-                        >
-                          <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <CircleDollarSign size={14} className="text-blue-600" />
-                          </div>
-                          <span className="text-sm">{token.symbol}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Chain Selection */}
-              <div className="mb-3">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSwapFromChainSelect(!showSwapFromChainSelect)}
-                    className="w-full flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-                  >
-                    <img src={supportedChains.find(c => c.name === swapFromChain)?.logo} alt={swapFromChain} className="w-5 h-5" />
-                    <span className="font-medium text-sm">{swapFromChain}</span>
-                    <ChevronDown size={14} className="text-gray-400 ml-auto" />
-                  </button>
-                  
-                  {showSwapFromChainSelect && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-40 overflow-auto">
-                      {supportedChains.filter(c => c.tokens.includes(swapFromToken)).map((chain) => (
-                        <button
-                          key={chain.name}
-                          onClick={() => {
-                            setSwapFromChain(chain.name);
-                            setShowSwapFromChainSelect(false);
-                          }}
-                          className="w-full flex items-center gap-2 p-2 hover:bg-gray-50"
-                        >
-                          <img src={chain.logo} alt={chain.name} className="w-5 h-5" />
-                          <span className="text-sm">{chain.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* External Wallet Address */}
-              <Input
-                type="text"
-                placeholder={`Enter your ${swapFromChain} address`}
-                value={swapFromAddress}
-                onChange={(e) => setSwapFromAddress(e.target.value)}
-                className="focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl font-mono text-sm"
-              />
-            </div>
-
-            {/* Arrow Down */}
-            <div className="flex justify-center">
-              <div className="p-2 bg-gray-100 rounded-full">
-                <ArrowDownLeft size={20} className="text-gray-500" />
-              </div>
-            </div>
-
-            {/* To Section */}
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <Label className="text-sm text-gray-600 mb-2 block">To (Your Main Wallet)</Label>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <CircleDollarSign size={14} className="text-blue-600" />
-                </div>
-                <span className="font-medium">USDC</span>
-                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
-                  <Wallet size={12} />
-                  Solana
-                </span>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-gray-200">
-                <p className="font-mono text-sm text-gray-700 hidden sm:block">7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU</p>
-                <p className="font-mono text-sm text-gray-700 sm:hidden">7xKX...sAsU</p>
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div>
-              <Label className="text-sm text-gray-600 mb-2 block">Amount to Swap</Label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={swapFromAmount}
-                  onChange={(e) => handleSwapFromChange(e.target.value)}
-                  className="pl-10 py-5 text-lg focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                />
-              </div>
-            </div>
-
-            {/* Generate Address or Show Generated */}
-            {!swapGenerated ? (
-              <Button 
-                onClick={generateSwapAddress}
-                className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
-              >
-                <RefreshCw size={18} className="mr-2" />
-                Generate Deposit Address
-              </Button>
-            ) : (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-green-800">Deposit Address</span>
-                  <div className="flex items-center gap-1 text-amber-600">
-                    <Timer size={14} />
-                    <span className="text-xs font-medium">{formatTime(swapTimeLeft)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-3 bg-white rounded-xl">
-                  <span className="flex-1 font-mono text-sm text-gray-700 break-all">{swapTempAddress}</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(swapTempAddress);
-                      toast.success('Address copied!');
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-lg"
-                  >
-                    <Copy size={16} className="text-gray-500" />
-                  </button>
-                </div>
-                <p className="text-xs text-green-700 mt-3">
-                  Send {swapFromToken} from your {swapFromChain} wallet to this address. 
-                  You will receive {swapToAmount} USDC on Solana.
-                </p>
-              </div>
-            )}
-
-            {/* Fee Info */}
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-blue-700">You Send</span>
-                <span className="font-medium text-blue-800">{swapFromAmount || '0.00'} {swapFromToken}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-blue-700">Swap Fee (0.5%)</span>
-                <span className="font-medium text-blue-800">${swapFromAmount ? calculateFee(Number(swapFromAmount)).toFixed(2) : '0.00'}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-700 font-medium">You Receive</span>
-                <span className="font-bold text-blue-800">{swapToAmount || '0.00'} USDC</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recent Crypto Transactions */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-display font-semibold text-gray-900">Recent Activity</h2>
-          <button className="text-sm text-gray-500 hover:text-gray-700">
-            View All
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          {recentCryptoTransactions.map((tx, index) => (
-            <button 
-              key={tx.id}
-              onClick={() => setSelectedTransaction(tx)}
-              className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left
-                ${index !== recentCryptoTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTransactionBg(tx.type)}`}>
-                  {getTransactionIcon(tx.type)}
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-gray-900 capitalize">
-                    {tx.type === 'swap' ? `Swapped ${tx.from} to ${tx.to}` : 
-                     tx.type === 'receive' ? `Received ${tx.token}` : `${tx.type} ${tx.token}`}
-                  </p>
-                  <p className="text-gray-400 text-xs">{tx.date}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-sm text-gray-900">
-                  {tx.type === 'swap' ? `${tx.amount} ${tx.from}` : 
-                   tx.type === 'receive' ? `+${tx.amount} ${tx.token}` : 
-                   `$${tx.value?.toLocaleString()}`}
-                </p>
-                <span className={`text-xs px-2 py-0.5 rounded-full
-                  ${tx.status === 'completed' ? 'bg-green-100 text-green-600' : 
-                    tx.status === 'processing' ? 'bg-blue-100 text-blue-600' :
-                    tx.status === 'pending' ? 'bg-amber-100 text-amber-600' :
-                    'bg-red-100 text-red-600'}`}>
-                  {tx.status}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Transaction Detail Modal */}
-      {selectedTransaction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setSelectedTransaction(null)}
-          />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
-            <div className="p-5 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-display font-bold text-gray-900">Transaction Details</h2>
-                <button
-                  onClick={() => setSelectedTransaction(null)}
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-5 space-y-4">
-              {/* Status */}
-              <div className="flex items-center justify-center">
-                <span className={`px-4 py-2 rounded-full text-sm font-medium
-                  ${selectedTransaction.status === 'completed' ? 'bg-green-100 text-green-600' : 
-                    selectedTransaction.status === 'processing' ? 'bg-blue-100 text-blue-600' :
-                    selectedTransaction.status === 'pending' ? 'bg-amber-100 text-amber-600' :
-                    'bg-red-100 text-red-600'}`}>
-                  {selectedTransaction.status.charAt(0).toUpperCase() + selectedTransaction.status.slice(1)}
-                </span>
-              </div>
-              
-              {/* Amount */}
-              <div className="text-center">
-                <p className="text-3xl font-display font-bold text-gray-900">
-                  ${selectedTransaction.value.toLocaleString()}
-                </p>
-                <p className="text-gray-500 text-sm capitalize">{selectedTransaction.type} {selectedTransaction.token}</p>
-              </div>
-              
-              {/* Details */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-sm">Transaction ID</span>
-                  <span className="font-mono text-sm">#{selectedTransaction.id.toString().padStart(6, '0')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-sm">Date</span>
-                  <span className="text-sm">{selectedTransaction.date}</span>
-                </div>
-                {selectedTransaction.txHash && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 text-sm">Transaction Hash</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm">{selectedTransaction.txHash}</span>
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedTransaction.txHash || '');
-                          toast.success('Copied!');
-                        }}
-                        className="p-1 hover:bg-gray-200 rounded"
-                      >
-                        <Copy size={14} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-sm">Fee</span>
-                  <span className="text-sm">${selectedTransaction.fee?.toFixed(2) || '0.00'}</span>
-                </div>
-              </div>
-              
-              {/* Contact Support */}
-              <Button
-                variant="outline"
-                onClick={() => toast.info('Support chat opening...')}
-                className="w-full border-gray-200 hover:bg-gray-50 h-12 rounded-xl"
-              >
-                <MessageCircle size={18} className="mr-2 text-green-600" />
-                Contact Support
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {selectedTransaction && <TransactionDetailModal />}
     </div>
   );
 }
