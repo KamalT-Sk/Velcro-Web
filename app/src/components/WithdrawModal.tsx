@@ -31,7 +31,7 @@ const currencies: Currency[] = [
   { code: 'ZAR', name: 'South African Rand', logo: '/logos/za.png', balance: 0, symbol: 'R' },
 ];
 
-type WithdrawMethod = 'bank' | 'velcrotag' | 'whatsapp';
+type WithdrawMethod = 'bank' | 'velcrotag' | 'phone' | 'whatsapp';
 
 export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawModalProps) {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0]);
@@ -44,6 +44,7 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
   const [withdrawMethod, setWithdrawMethod] = useState<WithdrawMethod>('bank');
   const [recipientTag, setRecipientTag] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [note, setNote] = useState('');
 
   if (!isOpen) return null;
 
@@ -68,6 +69,11 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
         toast.error('Please enter a VelcroTag');
         return;
       }
+    } else if (withdrawMethod === 'phone') {
+      if (!recipientPhone || recipientPhone.length < 10) {
+        toast.error('Please enter a valid phone number');
+        return;
+      }
     } else if (withdrawMethod === 'whatsapp') {
       if (!recipientPhone) {
         toast.error('Please enter a WhatsApp number');
@@ -84,6 +90,8 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
       successMessage = `Withdrawal of ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()} to bank account initiated!`;
     } else if (withdrawMethod === 'velcrotag') {
       successMessage = `Transfer of ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()} to @${recipientTag} successful!`;
+    } else if (withdrawMethod === 'phone') {
+      successMessage = `Transfer of ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()} to phone ${recipientPhone} successful!`;
     } else {
       successMessage = `Transfer of ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()} to WhatsApp ${recipientPhone} successful!`;
     }
@@ -96,6 +104,7 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
     setAccountName('');
     setRecipientTag('');
     setRecipientPhone('');
+    setNote('');
   };
 
   const calculateFee = (amt: number) => {
@@ -214,7 +223,7 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
           {/* Withdraw Method Selection */}
           <div>
             <Label className="text-sm text-gray-600 mb-2 block">Transfer Method</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setWithdrawMethod('bank')}
                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1
@@ -237,6 +246,18 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
                 <AtSign size={20} className={withdrawMethod === 'velcrotag' ? 'text-velcro-green' : 'text-gray-400'} />
                 <span className={`text-xs font-medium ${withdrawMethod === 'velcrotag' ? 'text-gray-900' : 'text-gray-600'}`}>
                   VelcroTag
+                </span>
+              </button>
+              <button
+                onClick={() => setWithdrawMethod('phone')}
+                className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1
+                  ${withdrawMethod === 'phone' 
+                    ? 'border-velcro-green bg-velcro-green/5' 
+                    : 'border-gray-100 hover:border-gray-200'}`}
+              >
+                <Phone size={20} className={withdrawMethod === 'phone' ? 'text-velcro-green' : 'text-gray-400'} />
+                <span className={`text-xs font-medium ${withdrawMethod === 'phone' ? 'text-gray-900' : 'text-gray-600'}`}>
+                  Phone
                 </span>
               </button>
               <button
@@ -334,6 +355,45 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
             </div>
           )}
 
+          {/* Phone Number Transfer */}
+          {withdrawMethod === 'phone' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Phone size={18} className="text-gray-400" />
+                <span className="text-sm font-medium">Phone Number Transfer</span>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Recipient Phone Number</Label>
+                <div className="relative">
+                  <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Input
+                    type="tel"
+                    placeholder="+234 800 000 0000"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    className="pl-12 py-4 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Recipient will receive an SMS with instructions to claim funds. If they have a Velcro account, money goes directly to their wallet.
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Note (Optional)</Label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Add a message..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none resize-none h-20 text-sm"
+                  maxLength={100}
+                />
+                <p className="text-xs text-gray-400 text-right mt-1">{note.length}/100</p>
+              </div>
+            </div>
+          )}
+
           {/* WhatsApp Transfer */}
           {withdrawMethod === 'whatsapp' && (
             <div className="space-y-4">
@@ -357,6 +417,18 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
                 <p className="text-xs text-gray-500 mt-2">
                   The recipient will receive a WhatsApp message to claim the funds
                 </p>
+              </div>
+
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Note (Optional)</Label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Add a message..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none resize-none h-20 text-sm"
+                  maxLength={100}
+                />
+                <p className="text-xs text-gray-400 text-right mt-1">{note.length}/100</p>
               </div>
             </div>
           )}

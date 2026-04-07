@@ -12,7 +12,9 @@ import {
   RotateCcw,
   ArrowDownLeft,
   ArrowUpRight,
-  Repeat
+  Repeat,
+  Link2,
+  Gift
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -20,6 +22,10 @@ import { CurrencyHistoryModal } from './CurrencyHistoryModal';
 import { DepositModal } from './DepositModal';
 import { WithdrawModal } from './WithdrawModal';
 import { TransactionDetailModal } from './TransactionDetailModal';
+import { ConvertModal } from './ConvertModal';
+import { SendMoneyLinkModal, type PaymentSendLink } from './SendMoneyLinkModal';
+import { SendMoneyLinksManager } from './SendMoneyLinksManager';
+import { RedeemLinkModal } from './RedeemLinkModal';
 import type { UserKYC } from '@/App';
 
 // Currency data with logo paths
@@ -33,15 +39,27 @@ interface Currency {
   logo: string;
 }
 
-const currencies: Currency[] = [
+const initialCurrencies: Currency[] = [
   { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', balance: 2450000.50, isActive: true, isComingSoon: false, logo: '/logos/ng.png' },
-  { code: 'USD', name: 'US Dollar', symbol: '$', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/us.png' },
-  { code: 'EUR', name: 'Euro', symbol: '€', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/eu.png' },
-  { code: 'GBP', name: 'British Pound', symbol: '£', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/gb.png' },
-  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/ke.png' },
-  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/eg.png' },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R', balance: 0, isActive: false, isComingSoon: true, logo: '/logos/za.png' },
+  { code: 'USD', name: 'US Dollar', symbol: '$', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/us.png' },
+  { code: 'EUR', name: 'Euro', symbol: '€', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/eu.png' },
+  { code: 'GBP', name: 'British Pound', symbol: '£', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/gb.png' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/ke.png' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/eg.png' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/za.png' },
 ];
+
+// Exchange rates (relative to USD)
+const exchangeRates: Record<string, number> = {
+  USD: 1,
+  NGN: 0.00067,
+  EUR: 1.08,
+  GBP: 1.27,
+  KES: 0.0077,
+  EGP: 0.020,
+  ZAR: 0.054,
+  USDC: 1,
+};
 
 interface Transaction {
   id: number;
@@ -74,10 +92,148 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [showSendLinkModal, setShowSendLinkModal] = useState(false);
+  const [showSendLinkManager, setShowSendLinkManager] = useState(false);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currencies, setCurrencies] = useState<Currency[]>(initialCurrencies);
+  const [usdcBalance, setUsdcBalance] = useState(1250);
+  const [transactions, setTransactions] = useState<Transaction[]>(recentTransactions);
+  const [sendMoneyLinks, setSendMoneyLinks] = useState<PaymentSendLink[]>([]);
 
   const totalBalance = currencies.reduce((acc, curr) => acc + curr.balance, 0);
+
+  const getBalances = () => {
+    const balances: Record<string, number> = {};
+    currencies.forEach(c => balances[c.code] = c.balance);
+    balances['USDC'] = usdcBalance;
+    return balances;
+  };
+
+  const handleConvert = (fromCurrency: string, toCurrency: string, amount: number) => {
+    const fromRate = exchangeRates[fromCurrency];
+    const toRate = exchangeRates[toCurrency];
+    const convertedAmount = amount * (fromRate / toRate);
+    const feeRate = (fromCurrency === 'USDC' || toCurrency === 'USDC') ? 0.01 : 0.005;
+    const totalDeduction = amount * (1 + feeRate);
+
+    // Update balances
+    setCurrencies(prev => prev.map(c => {
+      if (c.code === fromCurrency) {
+        return { ...c, balance: c.balance - totalDeduction };
+      }
+      if (c.code === toCurrency) {
+        return { ...c, balance: c.balance + convertedAmount };
+      }
+      return c;
+    }));
+
+    // Update USDC balance if involved
+    if (fromCurrency === 'USDC') {
+      setUsdcBalance(prev => prev - totalDeduction);
+    }
+    if (toCurrency === 'USDC') {
+      setUsdcBalance(prev => prev + convertedAmount);
+    }
+
+    // Add transaction record
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      type: 'convert',
+      amount: amount,
+      currency: fromCurrency,
+      from: fromCurrency,
+      to: toCurrency,
+      date: 'Just now',
+      status: 'completed',
+      description: `Converted ${fromCurrency} to ${toCurrency}`,
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const handleCreateSendLink = (link: PaymentSendLink) => {
+    // Deduct amount from balance
+    const feeRate = link.currency === 'USDC' ? 0.01 : 0.005;
+    const totalDeduction = link.amount * (1 + feeRate);
+
+    if (link.currency === 'USDC') {
+      setUsdcBalance(prev => prev - totalDeduction);
+    } else {
+      setCurrencies(prev => prev.map(c => 
+        c.code === link.currency 
+          ? { ...c, balance: c.balance - totalDeduction }
+          : c
+      ));
+    }
+
+    setSendMoneyLinks(prev => [link, ...prev]);
+
+    // Add transaction record
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      type: 'send',
+      amount: link.amount,
+      currency: link.currency,
+      to: 'Payment Link',
+      date: 'Just now',
+      status: 'completed',
+      description: `Payment link created: ${link.note}`,
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const handleCancelSendLink = (id: string) => {
+    const link = sendMoneyLinks.find(l => l.id === id);
+    if (!link) return;
+
+    // Return funds to balance
+    const feeRate = link.currency === 'USDC' ? 0.01 : 0.005;
+    const totalDeduction = link.amount * (1 + feeRate);
+
+    if (link.currency === 'USDC') {
+      setUsdcBalance(prev => prev + totalDeduction);
+    } else {
+      setCurrencies(prev => prev.map(c => 
+        c.code === link.currency 
+          ? { ...c, balance: c.balance + totalDeduction }
+          : c
+      ));
+    }
+
+    setSendMoneyLinks(prev => prev.filter(l => l.id !== id));
+  };
+
+  const handleRedeemLink = (linkId: string, pin?: string) => {
+    // In a real app, this would verify the link and PIN with the backend
+    // For demo, we'll simulate a successful redemption
+    
+    // Add the redeemed amount to user's balance (simulated)
+    const mockRedeemedAmount = 5000;
+    const mockCurrency = 'NGN';
+    
+    setCurrencies(prev => prev.map(c => 
+      c.code === mockCurrency 
+        ? { ...c, balance: c.balance + mockRedeemedAmount }
+        : c
+    ));
+
+    // Add transaction record
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      type: 'receive',
+      amount: mockRedeemedAmount,
+      currency: mockCurrency,
+      from: 'Payment Link',
+      date: 'Just now',
+      status: 'completed',
+      description: 'Redeemed from payment link',
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+    
+    setShowRedeemModal(false);
+  };
 
   const handleCurrencyClick = (currency: Currency) => {
     if (currency.isComingSoon) return;
@@ -194,25 +350,39 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
           </button>
         </div>
         
-        {/* Quick Actions - Add Funds, Transfer, Convert */}
-        <div className="flex gap-3">
+        {/* Quick Actions - Add Funds, Transfer, Send Link, Convert, Redeem */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <Button 
-            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white h-11 rounded-xl"
+            className="bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl"
             onClick={() => setShowDepositModal(true)}
           >
             <Plus size={18} className="mr-2" />
             Add Funds
           </Button>
           <Button 
-            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white h-11 rounded-xl"
+            className="bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl"
             onClick={() => setShowWithdrawModal(true)}
           >
             <Send size={18} className="mr-2" />
             Transfer
           </Button>
           <Button 
-            className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-11 rounded-xl"
-            onClick={() => toast.info('Convert feature coming soon!')}
+            className="bg-velcro-navy hover:bg-velcro-navy/90 text-white h-12 rounded-xl"
+            onClick={() => setShowSendLinkModal(true)}
+          >
+            <Link2 size={18} className="mr-2" />
+            Send Link
+          </Button>
+          <Button 
+            className="bg-amber-500 hover:bg-amber-600 text-white h-12 rounded-xl"
+            onClick={() => setShowRedeemModal(true)}
+          >
+            <Gift size={18} className="mr-2" />
+            Redeem
+          </Button>
+          <Button 
+            className="bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl sm:col-span-2 lg:col-span-1"
+            onClick={() => setShowConvertModal(true)}
           >
             <ArrowRightLeft size={18} className="mr-2" />
             Convert
@@ -320,9 +490,9 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
                   </div>
                 </div>
                 <p className="text-3xl font-display font-bold mt-3">
-                  {showBalance ? '$1,250.00' : '****'}
+                  {showBalance ? `$${usdcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '****'}
                 </p>
-                <p className="text-white/60 text-sm">≈ ₦1,875,000 NGN</p>
+                <p className="text-white/60 text-sm">≈ ₦{(usdcBalance * 1500).toLocaleString()} NGN</p>
                 
                 {/* Non-KYC Limit Warning */}
                 {userKYC.tier === 'none' && (
@@ -412,12 +582,12 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         </div>
         
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          {recentTransactions.map((tx, index) => (
+          {transactions.map((tx, index) => (
             <button 
               key={tx.id}
               onClick={() => setSelectedTransaction(tx)}
               className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left
-                ${index !== recentTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
+                ${index !== transactions.length - 1 ? 'border-b border-gray-50' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTransactionBg(tx.type)}`}>
@@ -470,11 +640,102 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         userKYC={userKYC}
         velcroTag={velcroTag}
       />
+      <ConvertModal
+        isOpen={showConvertModal}
+        onClose={() => setShowConvertModal(false)}
+        balances={getBalances()}
+        onConvert={handleConvert}
+      />
+      <SendMoneyLinkModal
+        isOpen={showSendLinkModal}
+        onClose={() => setShowSendLinkModal(false)}
+        balances={getBalances()}
+        onCreateLink={handleCreateSendLink}
+      />
+      <RedeemLinkModal
+        isOpen={showRedeemModal}
+        onClose={() => setShowRedeemModal(false)}
+        onRedeem={handleRedeemLink}
+      />
       <TransactionDetailModal
         isOpen={!!selectedTransaction}
         onClose={() => setSelectedTransaction(null)}
         transaction={selectedTransaction}
       />
+
+      {/* Send Money Links Section - Show if there are active links */}
+      {sendMoneyLinks.length > 0 && !showSendLinkManager && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-display font-semibold text-gray-900">Active Payment Links</h2>
+              <p className="text-gray-500 text-sm">{sendMoneyLinks.filter(l => l.status === 'active').length} active link(s)</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowSendLinkManager(true)}
+              className="rounded-xl"
+            >
+              Manage Links
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {sendMoneyLinks.filter(l => l.status === 'active').slice(0, 2).map((link) => (
+              <div key={link.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-velcro-green/20 rounded-lg flex items-center justify-center">
+                    <Link2 size={18} className="text-velcro-navy" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">₦{link.amount.toLocaleString()} {link.currency}</p>
+                    <p className="text-xs text-gray-500">Expires in {link.expiresInHours}h</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(link.claimUrl);
+                    toast.success('Link copied!');
+                  }}
+                  className="p-2 hover:bg-white rounded-lg transition-colors"
+                >
+                  <Copy size={16} className="text-gray-500" />
+                </button>
+              </div>
+            ))}
+            {sendMoneyLinks.filter(l => l.status === 'active').length > 2 && (
+              <button
+                onClick={() => setShowSendLinkManager(true)}
+                className="w-full py-2 text-sm text-velcro-navy font-medium hover:underline"
+              >
+                View all {sendMoneyLinks.filter(l => l.status === 'active').length} links
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Full Send Money Links Manager */}
+      {showSendLinkManager && (
+        <div className="fixed inset-0 z-50 bg-gray-50 overflow-auto">
+          <div className="max-w-3xl mx-auto p-4 lg:p-8">
+            <button
+              onClick={() => setShowSendLinkManager(false)}
+              className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              <ChevronRight size={20} className="rotate-180" />
+              Back to Dashboard
+            </button>
+            <SendMoneyLinksManager
+              links={sendMoneyLinks}
+              onCreateNew={() => {
+                setShowSendLinkManager(false);
+                setShowSendLinkModal(true);
+              }}
+              onCancelLink={handleCancelSendLink}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
