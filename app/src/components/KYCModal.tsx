@@ -1740,34 +1740,52 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
     );
   };
 
-  const renderSuccess = () => (
-    <div className="text-center py-6 sm:py-8">
-      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-100 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-6 border border-green-200">
-        <Check size={32} className="text-green-600" />
+  const renderSuccess = () => {
+    // Safety fallback - if somehow success is shown without data, just close
+    if (!completedKYCData) {
+      return (
+        <div className="text-center py-6 sm:py-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-6">
+            <Check size={32} className="text-green-600" />
+          </div>
+          <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">Success!</h2>
+          <p className="text-gray-500 mb-6">Your verification has been submitted.</p>
+          <Button onClick={onClose} className="bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 px-8 rounded-xl">
+            Go to Dashboard
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center py-6 sm:py-8">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-100 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-6 border border-green-200">
+          <Check size={32} className="text-green-600" />
+        </div>
+        <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">
+          Verification Submitted!
+        </h2>
+        <p className="text-gray-500 mb-6">
+          {kycType === 'business'
+            ? 'Your business verification is under review. We\'ll notify you within 2-3 business days.'
+            : 'Your documents are under review. We\'ll notify you within 24 hours.'}
+        </p>
+        <Button 
+          onClick={() => {
+            if (!hasCalledOnComplete.current && completedKYCData) {
+              hasCalledOnComplete.current = true;
+              onComplete(completedKYCData);
+            } else {
+              onClose();
+            }
+          }}
+          className="bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 px-8 rounded-xl"
+        >
+          Go to Dashboard
+        </Button>
       </div>
-      <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">
-        Verification Submitted!
-      </h2>
-      <p className="text-gray-500 mb-6">
-        {kycType === 'business'
-          ? 'Your business verification is under review. We\'ll notify you within 2-3 business days.'
-          : 'Your documents are under review. We\'ll notify you within 24 hours.'}
-      </p>
-      <Button 
-        onClick={() => {
-          if (!hasCalledOnComplete.current && completedKYCData) {
-            hasCalledOnComplete.current = true;
-            onComplete(completedKYCData);
-          } else {
-            onClose();
-          }
-        }}
-        className="bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 px-8 rounded-xl"
-      >
-        Go to Dashboard
-      </Button>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
@@ -1802,6 +1820,15 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
           {currentStep === 'selfie' && renderSelfie()}
           {currentStep === 'review' && renderReview()}
           {currentStep === 'success' && renderSuccess()}
+          {/* Fallback for invalid step */}
+          {!['select-type', 'individual-tier', 'business-tier', 'business-basic', 'business-contact', 'business-officers', 'business-documents', 'bvn-verify', 'personal-details', 'address-info', 'document-upload', 'selfie', 'review', 'success'].includes(currentStep) && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Something went wrong. Please try again.</p>
+              <Button onClick={() => setCurrentStep('select-type')} className="mt-4">
+                Start Over
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
