@@ -9,6 +9,7 @@ import { Cards } from './components/Cards';
 import { AuthFlow } from './components/AuthFlow';
 import { KYCModal } from './components/KYCModal';
 import { WhatsAppSyncModal } from './components/WhatsAppSyncModal';
+import { ClaimPage } from './components/ClaimPage';
 import { Toaster } from '@/components/ui/sonner';
 
 export type View = 'dashboard' | 'payment-links' | 'crypto' | 'utilities' | 'settings' | 'cards';
@@ -39,12 +40,28 @@ function App() {
     cryptoLimit: 100, // $100 crypto limit without KYC
   });
 
+  // Check if we're on a claim page (claim.usevelcro.com or /claim/ path)
+  const isClaimPage = typeof window !== 'undefined' && (
+    window.location.hostname.startsWith('claim.') ||
+    window.location.pathname.startsWith('/claim/')
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Render claim page for payment links
+  if (isClaimPage) {
+    return (
+      <>
+        <ClaimPage />
+        <Toaster />
+      </>
+    );
+  }
 
   const handleAuthComplete = () => {
     setAuthState('authenticated');

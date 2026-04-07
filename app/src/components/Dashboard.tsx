@@ -13,8 +13,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Repeat,
-  Link2,
-  Gift
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -25,7 +24,6 @@ import { TransactionDetailModal } from './TransactionDetailModal';
 import { ConvertModal } from './ConvertModal';
 import { SendMoneyLinkModal, type PaymentSendLink } from './SendMoneyLinkModal';
 import { SendMoneyLinksManager } from './SendMoneyLinksManager';
-import { RedeemLinkModal } from './RedeemLinkModal';
 import type { UserKYC } from '@/App';
 
 // Currency data with logo paths
@@ -95,7 +93,6 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [showSendLinkModal, setShowSendLinkModal] = useState(false);
   const [showSendLinkManager, setShowSendLinkManager] = useState(false);
-  const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currencies, setCurrencies] = useState<Currency[]>(initialCurrencies);
@@ -203,36 +200,6 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
     }
 
     setSendMoneyLinks(prev => prev.filter(l => l.id !== id));
-  };
-
-  const handleRedeemLink = (linkId: string, pin?: string) => {
-    // In a real app, this would verify the link and PIN with the backend
-    // For demo, we'll simulate a successful redemption
-    
-    // Add the redeemed amount to user's balance (simulated)
-    const mockRedeemedAmount = 5000;
-    const mockCurrency = 'NGN';
-    
-    setCurrencies(prev => prev.map(c => 
-      c.code === mockCurrency 
-        ? { ...c, balance: c.balance + mockRedeemedAmount }
-        : c
-    ));
-
-    // Add transaction record
-    const newTransaction: Transaction = {
-      id: Date.now(),
-      type: 'receive',
-      amount: mockRedeemedAmount,
-      currency: mockCurrency,
-      from: 'Payment Link',
-      date: 'Just now',
-      status: 'completed',
-      description: 'Redeemed from payment link',
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-    
-    setShowRedeemModal(false);
   };
 
   const handleCurrencyClick = (currency: Currency) => {
@@ -350,8 +317,8 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
           </button>
         </div>
         
-        {/* Quick Actions - Add Funds, Transfer, Send Link, Convert, Redeem */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Quick Actions - Add Funds, Transfer, Send Link, Convert */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Button 
             className="bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl"
             onClick={() => setShowDepositModal(true)}
@@ -374,14 +341,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
             Send Link
           </Button>
           <Button 
-            className="bg-amber-500 hover:bg-amber-600 text-white h-12 rounded-xl"
-            onClick={() => setShowRedeemModal(true)}
-          >
-            <Gift size={18} className="mr-2" />
-            Redeem
-          </Button>
-          <Button 
-            className="bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl sm:col-span-2 lg:col-span-1"
+            className="bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
             onClick={() => setShowConvertModal(true)}
           >
             <ArrowRightLeft size={18} className="mr-2" />
@@ -651,11 +611,6 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         onClose={() => setShowSendLinkModal(false)}
         balances={getBalances()}
         onCreateLink={handleCreateSendLink}
-      />
-      <RedeemLinkModal
-        isOpen={showRedeemModal}
-        onClose={() => setShowRedeemModal(false)}
-        onRedeem={handleRedeemLink}
       />
       <TransactionDetailModal
         isOpen={!!selectedTransaction}
