@@ -465,20 +465,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
         </div>
 
         {/* Trust Badges */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center">
-              <CheckCircle size={12} />
-            </div>
-            <span>Secure by Anchor</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center">
-              <Lock size={12} />
-            </div>
-            <span>256-bit Encryption</span>
-          </div>
-        </div>
+
       </div>
     </div>
   );
