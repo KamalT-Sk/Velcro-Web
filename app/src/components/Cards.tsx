@@ -170,7 +170,7 @@ export function Cards() {
         </div>
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-velcro-green" />
-          <span className="text-sm text-gray-600">Powered by Mastercard</span>
+          <span className="text-sm text-gray-600">Powered by Bridgecard</span>
         </div>
       </div>
 
