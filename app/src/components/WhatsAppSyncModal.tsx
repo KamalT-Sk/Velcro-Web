@@ -127,7 +127,7 @@ export function WhatsAppSyncModal({ onClose, onSync, currentNumber, userEmail }:
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden">
-                <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
+                <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
               </div>
               <div>
                 <h2 className="font-display font-bold text-lg">
@@ -302,7 +302,7 @@ export function WhatsAppSyncModal({ onClose, onSync, currentNumber, userEmail }:
             <div className="space-y-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                  <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-12 h-12" />
+                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-12 h-12" />
                 </div>
                 <h3 className="font-display font-semibold text-gray-900 mb-1">
                   {currentNumber ? 'Enter new WhatsApp number' : 'Enter your WhatsApp number'}
@@ -382,7 +382,7 @@ export function WhatsAppSyncModal({ onClose, onSync, currentNumber, userEmail }:
             <div className="space-y-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                  <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-12 h-12" />
+                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-12 h-12" />
                 </div>
                 <h3 className="font-display font-semibold text-gray-900 mb-1">Enter verification code</h3>
                 <p className="text-gray-500 text-sm">

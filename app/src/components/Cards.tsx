@@ -31,70 +31,15 @@ import { toast } from 'sonner';
 
 // Subscription brands data
 const subscriptionBrands = [
-  { name: 'Netflix', logo: '/brands/netflix.png', color: '#E50914' },
-  { name: 'Spotify', logo: '/brands/spotify.png', color: '#1DB954' },
-  { name: 'YouTube', logo: '/brands/youtube.png', color: '#FF0000' },
-  { name: 'Apple Music', logo: '/brands/apple-music.png', color: '#FA243C' },
-  { name: 'Amazon', logo: '/brands/amazon.png', color: '#FF9900' },
-  { name: 'Disney+', logo: '/brands/disney.png', color: '#113CCF' },
+  { name: 'Netflix', logo: 'brands/netflix.png', color: '#E50914' },
+  { name: 'Spotify', logo: 'brands/spotify.png', color: '#1DB954' },
+  { name: 'YouTube', logo: 'brands/youtube.png', color: '#FF0000' },
+  { name: 'Apple Music', logo: 'brands/apple-music.png', color: '#FA243C' },
+  { name: 'Amazon', logo: 'brands/amazon.png', color: '#FF9900' },
+  { name: 'Disney+', logo: 'brands/disney.png', color: '#113CCF' },
 ];
 
-// Virtual card transactions with more details
-const cardTransactions = [
-  { 
-    id: 1, 
-    merchant: 'Netflix', 
-    amount: 15.99, 
-    date: 'Today, 8:00 AM', 
-    status: 'completed', 
-    logo: '/brands/netflix.png',
-    cardLast4: '5678',
-    category: 'Entertainment',
-    location: 'Online',
-    authCode: '847291',
-    description: 'Monthly subscription'
-  },
-  { 
-    id: 2, 
-    merchant: 'Spotify', 
-    amount: 10.99, 
-    date: 'Yesterday, 6:30 PM', 
-    status: 'completed', 
-    logo: '/brands/spotify.png',
-    cardLast4: '5678',
-    category: 'Entertainment',
-    location: 'Online',
-    authCode: '762345',
-    description: 'Premium subscription'
-  },
-  { 
-    id: 3, 
-    merchant: 'YouTube Premium', 
-    amount: 11.99, 
-    date: 'Mar 28, 2024', 
-    status: 'completed', 
-    logo: '/brands/youtube.png',
-    cardLast4: '5678',
-    category: 'Entertainment',
-    location: 'Online',
-    authCode: '982341',
-    description: 'Monthly subscription'
-  },
-  { 
-    id: 4, 
-    merchant: 'Apple Music', 
-    amount: 10.99, 
-    date: 'Mar 25, 2024', 
-    status: 'completed', 
-    logo: '/brands/apple-music.png',
-    cardLast4: '5678',
-    category: 'Entertainment',
-    location: 'Online',
-    authCode: '127643',
-    description: 'Individual plan'
-  },
-];
-
+// Card transaction type definition
 interface CardTransaction {
   id: number;
   merchant: string;
@@ -108,6 +53,62 @@ interface CardTransaction {
   authCode: string;
   description: string;
 }
+
+// Virtual card transactions with more details
+const cardTransactions: CardTransaction[] = [
+  { 
+    id: 1, 
+    merchant: 'Netflix', 
+    amount: 15.99, 
+    date: 'Today, 8:00 AM', 
+    status: 'completed', 
+    logo: 'brands/netflix.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '847291',
+    description: 'Monthly subscription'
+  },
+  { 
+    id: 2, 
+    merchant: 'Spotify', 
+    amount: 10.99, 
+    date: 'Yesterday, 6:30 PM', 
+    status: 'completed', 
+    logo: 'brands/spotify.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '762345',
+    description: 'Premium subscription'
+  },
+  { 
+    id: 3, 
+    merchant: 'YouTube Premium', 
+    amount: 11.99, 
+    date: 'Mar 28, 2024', 
+    status: 'completed', 
+    logo: 'brands/youtube.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '982341',
+    description: 'Monthly subscription'
+  },
+  { 
+    id: 4, 
+    merchant: 'Apple Music', 
+    amount: 10.99, 
+    date: 'Mar 25, 2024', 
+    status: 'completed', 
+    logo: 'brands/apple-music.png',
+    cardLast4: '5678',
+    category: 'Entertainment',
+    location: 'Online',
+    authCode: '127643',
+    description: 'Individual plan'
+  },
+];
 
 export function Cards() {
   const [showCardDetails, setShowCardDetails] = useState(false);
@@ -162,7 +163,7 @@ export function Cards() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-900">Cards</h1>
           <p className="text-gray-500 text-sm">Manage your virtual and physical cards</p>
@@ -391,7 +392,7 @@ export function Cards() {
                             : 'border-gray-100 hover:border-gray-200'}`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <img src="/logos/ng.png" alt="NGN" className="w-6 h-6 object-contain" />
+                          <img src="logos/ng.png" alt="NGN" className="w-6 h-6 object-contain" />
                           <span className={`font-medium ${topUpMethod === 'naira' ? 'text-gray-900' : 'text-gray-600'}`}>
                             Naira Wallet
                           </span>
@@ -406,7 +407,7 @@ export function Cards() {
                             : 'border-gray-100 hover:border-gray-200'}`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <img src="/logos/usdc.png" alt="USDC" className="w-6 h-6 object-contain" />
+                          <img src="logos/usdc.png" alt="USDC" className="w-6 h-6 object-contain" />
                           <span className={`font-medium ${topUpMethod === 'usdc' ? 'text-gray-900' : 'text-gray-600'}`}>
                             USDC Wallet
                           </span>
@@ -785,7 +786,7 @@ export function Cards() {
                     onClick={() => handleWhatsAppSupport(selectedTransaction)}
                     className="w-full border-green-200 hover:bg-green-50 hover:border-green-300 h-12 rounded-xl justify-start"
                   >
-                    <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                    <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
                     <div className="text-left flex-1">
                       <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
                       <p className="text-xs text-gray-500">+234 800 123 4567</p>

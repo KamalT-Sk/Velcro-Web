@@ -159,7 +159,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center justify-center h-12 sm:h-16 mb-3 sm:mb-4">
-            <img src="/logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
+            <img src="logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
           </div>
           <p className="text-gray-500 text-sm">Payments made simple</p>
         </div>

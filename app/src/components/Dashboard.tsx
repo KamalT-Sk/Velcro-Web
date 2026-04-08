@@ -12,7 +12,13 @@ import {
   RotateCcw,
   ArrowDownLeft,
   ArrowUpRight,
-  Repeat
+  Repeat,
+  Download,
+  ArrowUp,
+  RefreshCcw,
+  Wallet,
+  LogOut,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -37,13 +43,13 @@ interface Currency {
 }
 
 const initialCurrencies: Currency[] = [
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', balance: 2450000.50, isActive: true, isComingSoon: false, logo: '/logos/ng.png' },
-  { code: 'USD', name: 'US Dollar', symbol: '$', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/us.png' },
-  { code: 'EUR', name: 'Euro', symbol: '€', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/eu.png' },
-  { code: 'GBP', name: 'British Pound', symbol: '£', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/gb.png' },
-  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/ke.png' },
-  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/eg.png' },
-  { code: 'ZAR', name: 'South African Rand', symbol: 'R', balance: 0, isActive: false, isComingSoon: false, logo: '/logos/za.png' },
+  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', balance: 2450000.50, isActive: true, isComingSoon: false, logo: 'logos/ng.png' },
+  { code: 'USD', name: 'US Dollar', symbol: '$', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/us.png' },
+  { code: 'EUR', name: 'Euro', symbol: '€', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/eu.png' },
+  { code: 'GBP', name: 'British Pound', symbol: '£', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/gb.png' },
+  { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/ke.png' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/eg.png' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R', balance: 0, isActive: false, isComingSoon: false, logo: 'logos/za.png' },
 ];
 
 // Exchange rates (relative to USD)
@@ -73,7 +79,7 @@ interface Transaction {
 const recentTransactions: Transaction[] = [
   { id: 1, type: 'receive', amount: 50000, currency: 'NGN', from: 'John Doe', date: 'Today, 2:30 PM', status: 'completed', description: 'Payment for services' },
   { id: 2, type: 'send', amount: 25000, currency: 'NGN', to: 'Sarah Smith', date: 'Yesterday, 4:15 PM', status: 'completed', description: 'Rent payment' },
-  { id: 3, type: 'convert', amount: 100000, currency: 'NGN', date: 'Yesterday, 10:00 AM', status: 'completed', description: 'Converted to USDC' },
+  { id: 3, type: 'convert', amount: 100000, currency: 'NGN', from: 'NGN', to: 'USDC', date: 'Yesterday, 10:00 AM', status: 'completed', description: 'Converted to USDC' },
   { id: 4, type: 'receive', amount: 15000, currency: 'NGN', from: 'Mike Johnson', date: 'Mar 28, 2024', status: 'completed', description: 'Dinner split' },
 ];
 
@@ -227,42 +233,42 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'receive':
-        return <ArrowDownLeft size={18} className="text-green-600" />;
+        return <Download size={16} className="text-white" strokeWidth={2.5} />;
       case 'send':
-        return <ArrowUpRight size={18} className="text-red-600" />;
+        return <Send size={16} className="text-white" strokeWidth={2.5} />;
       case 'convert':
-        return <Repeat size={18} className="text-blue-600" />;
+        return <RefreshCcw size={16} className="text-white" strokeWidth={2.5} />;
       case 'deposit':
-        return <ArrowDownLeft size={18} className="text-purple-600" />;
+        return <Plus size={16} className="text-white" strokeWidth={2.5} />;
       case 'withdrawal':
-        return <Send size={18} className="text-orange-600" />;
+        return <LogOut size={16} className="text-white" strokeWidth={2.5} />;
       default:
-        return <ArrowDownLeft size={18} className="text-gray-600" />;
+        return <Wallet size={16} className="text-white" strokeWidth={2.5} />;
     }
   };
 
   const getTransactionBg = (type: string) => {
     switch (type) {
       case 'receive':
-        return 'bg-green-100';
+        return 'bg-emerald-600';
       case 'send':
-        return 'bg-red-100';
+        return 'bg-slate-700';
       case 'convert':
-        return 'bg-blue-100';
+        return 'bg-indigo-600';
       case 'deposit':
-        return 'bg-purple-100';
+        return 'bg-violet-600';
       case 'withdrawal':
-        return 'bg-orange-100';
+        return 'bg-amber-600';
       default:
-        return 'bg-gray-100';
+        return 'bg-gray-600';
     }
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header with VelcroTag & VelcroPoints - Small on top left */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
+        <div className="flex items-center gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-display font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 text-sm">Welcome back, Shehu Kamal!</p>
@@ -409,7 +415,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-display font-semibold text-gray-900">Solana Stable Hub</h2>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
-            <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+            <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
             <span className="text-xs text-purple-700 font-medium">Powered by Solana</span>
           </div>
         </div>
@@ -425,12 +431,12 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <img src="/images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
+                    <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
                   </div>
                   <div>
                     <p className="font-semibold">USDC Balance</p>
                     <p className="text-white/60 text-sm flex items-center gap-1">
-                      <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                      <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
                       Solana Network
                     </p>
                   </div>
@@ -506,27 +512,28 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
               className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left
                 ${index !== transactions.length - 1 ? 'border-b border-gray-50' : ''}`}
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTransactionBg(tx.type)}`}>
+              <div className="flex items-center gap-4">
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm ${getTransactionBg(tx.type)}`}>
                   {getTransactionIcon(tx.type)}
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-gray-900">
+                  <p className="font-medium text-sm text-gray-800">
                     {tx.type === 'receive' ? `Received from ${tx.from}` : 
-                     tx.type === 'send' ? `Sent to ${tx.to}` : `Converted ${tx.from} to ${tx.to}`}
+                     tx.type === 'send' ? `Sent to ${tx.to}` : 
+                     tx.from && tx.to ? `Converted ${tx.from} to ${tx.to}` : tx.description || 'Currency Conversion'}
                   </p>
-                  <p className="text-gray-400 text-xs">{tx.date}</p>
+                  <p className="text-gray-400 text-xs font-medium tracking-wide uppercase mt-0.5">{tx.date}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className={`font-semibold text-sm
-                  ${tx.type === 'receive' ? 'text-green-600' : 
-                    tx.type === 'send' ? 'text-red-600' : 'text-gray-900'}`}>
+                  ${tx.type === 'receive' ? 'text-emerald-600' : 
+                    tx.type === 'send' ? 'text-slate-700' : 'text-gray-900'}`}>
                   {tx.type === 'receive' ? '+' : tx.type === 'send' ? '-' : ''}
                   {tx.type === 'convert' ? '' : '₦'}
                   {tx.amount.toLocaleString()}
                 </p>
-                <p className="text-green-600 text-xs">{tx.status}</p>
+                <p className="text-emerald-600 text-xs font-medium">{tx.status}</p>
               </div>
             </button>
           ))}

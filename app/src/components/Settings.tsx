@@ -323,7 +323,7 @@ export function Settings() {
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-7 h-7" />
+              <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-7 h-7" />
             </div>
             <div>
               <p className="font-semibold text-gray-900">WhatsApp Support</p>
@@ -369,7 +369,7 @@ export function Settings() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
+      <div className="pl-12 lg:pl-0">
         <h1 className="text-2xl font-display font-bold text-gray-900">Settings</h1>
         <p className="text-gray-500 text-sm">Manage your account preferences</p>
       </div>

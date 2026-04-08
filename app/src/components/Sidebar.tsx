@@ -27,6 +27,7 @@ interface SidebarProps {
   velcroPoints: number;
   onWhatsAppClick: () => void;
   onKYCClick: () => void;
+  onSignOut: () => void;
 }
 
 const menuItems: { id: View; label: string; icon: React.ElementType }[] = [
@@ -38,7 +39,7 @@ const menuItems: { id: View; label: string; icon: React.ElementType }[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, velcroTag, velcroPoints, onWhatsAppClick, onKYCClick }: SidebarProps) {
+export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, velcroTag, velcroPoints, onWhatsAppClick, onKYCClick, onSignOut }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -61,10 +62,10 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo Section */}
-        <div className="p-5 border-b border-gray-100">
+        <div className="p-5 pl-16 lg:pl-5 border-b border-gray-100">
           <div className="flex items-center">
             <div className="h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <img src="/logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
+              <img src="logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
             </div>
           </div>
         </div>
@@ -98,7 +99,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
               }`}
             >
               <div className="relative">
-                <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
+                <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-8 h-8" />
                 {whatsAppNumber && (
                   <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
                 )}
@@ -198,7 +199,10 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-gray-100 mt-auto">
-          <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors ${isCollapsed ? 'justify-center' : ''}`}>
+          <button 
+            onClick={onSignOut}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          >
             <LogOut size={18} />
             {!isCollapsed && <span className="text-sm font-medium">Sign Out</span>}
           </button>

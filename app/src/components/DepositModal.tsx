@@ -23,7 +23,7 @@ const currencyAccounts: CurrencyAccount[] = [
   {
     code: 'NGN',
     name: 'Nigerian Naira',
-    logo: '/logos/ng.png',
+    logo: 'logos/ng.png',
     bankName: '9 Payment Service Bank (9PSB)',
     accountNumber: '0123456789',
     accountName: 'Shehu Kamal',
@@ -33,7 +33,7 @@ const currencyAccounts: CurrencyAccount[] = [
   {
     code: 'USD',
     name: 'US Dollar',
-    logo: '/logos/us.png',
+    logo: 'logos/us.png',
     bankName: 'Community Federal Savings Bank',
     accountNumber: '',
     accountName: 'Shehu Kamal',
@@ -43,7 +43,7 @@ const currencyAccounts: CurrencyAccount[] = [
   {
     code: 'EUR',
     name: 'Euro',
-    logo: '/logos/eu.png',
+    logo: 'logos/eu.png',
     bankName: 'Deutsche Bank',
     accountNumber: '',
     accountName: 'Shehu Kamal',
@@ -53,7 +53,7 @@ const currencyAccounts: CurrencyAccount[] = [
   {
     code: 'GBP',
     name: 'British Pound',
-    logo: '/logos/gb.png',
+    logo: 'logos/gb.png',
     bankName: 'Barclays Bank',
     accountNumber: '',
     accountName: 'Shehu Kamal',

@@ -292,6 +292,10 @@ const availableCurrencies = ['NGN', 'USD', 'EUR', 'GBP', 'USDC'];
 export function PaymentLinks() {
   const [links, setLinks] = useState<PaymentLink[]>(initialLinks);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [editingLink, setEditingLink] = useState<PaymentLink | null>(null);
+  const [previewLink, setPreviewLink] = useState<PaymentLink | null>(null);
   const [selectedLink, setSelectedLink] = useState<PaymentLink | null>(null);
   const [formData, setFormData] = useState<{
     title: string;
@@ -381,6 +385,59 @@ export function PaymentLinks() {
   const deleteLink = (id: string) => {
     setLinks(links.filter(link => link.id !== id));
     toast.success('Payment link deleted!');
+  };
+
+  const handleEditLink = (link: PaymentLink) => {
+    setEditingLink(link);
+    setFormData({
+      title: link.title,
+      description: link.description,
+      slug: link.slug,
+      amount: link.amount?.toString() || '',
+      amountType: link.amountType,
+      currencies: link.currencies,
+      collectMessage: link.collectMessage,
+      collectPhone: link.collectPhone,
+      collectEmail: link.collectEmail,
+      allowAnonymous: link.allowAnonymous,
+      linkType: link.linkType,
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdateLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLink) return;
+
+    const updatedLinks = links.map(link => {
+      if (link.id === editingLink.id) {
+        return {
+          ...link,
+          title: formData.title,
+          description: formData.description,
+          slug: formData.slug,
+          amount: formData.amountType === 'fixed' ? Number(formData.amount) || 0 : null,
+          amountType: formData.amountType,
+          currencies: formData.currencies,
+          collectMessage: formData.collectMessage,
+          collectPhone: formData.collectPhone,
+          collectEmail: formData.collectEmail,
+          allowAnonymous: formData.allowAnonymous,
+          linkType: formData.linkType,
+        };
+      }
+      return link;
+    });
+
+    setLinks(updatedLinks);
+    setShowEditForm(false);
+    setEditingLink(null);
+    toast.success('Payment link updated successfully!');
+  };
+
+  const handlePreview = (link: PaymentLink) => {
+    setPreviewLink(link);
+    setShowPreview(true);
   };
 
   const exportPayments = (link: PaymentLink) => {
@@ -906,7 +963,7 @@ export function PaymentLinks() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-900">Payment Links</h1>
           <p className="text-gray-500 text-sm">Create and manage payment links for your business</p>
@@ -1027,14 +1084,14 @@ export function PaymentLinks() {
                   <button 
                     className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
                     title="Preview"
-                    onClick={() => toast.info('Preview coming soon!')}
+                    onClick={() => handlePreview(link)}
                   >
                     <Eye size={18} className="text-gray-500" />
                   </button>
                   <button 
                     className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
                     title="Edit"
-                    onClick={() => toast.info('Edit coming soon!')}
+                    onClick={() => handleEditLink(link)}
                   >
                     <Edit2 size={18} className="text-gray-500" />
                   </button>
@@ -1051,6 +1108,235 @@ export function PaymentLinks() {
           ))
         )}
       </div>
+
+      {/* Edit Form Modal */}
+      {showEditForm && editingLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-display font-semibold text-gray-900">Edit Payment Link</h2>
+                <button
+                  onClick={() => { setShowEditForm(false); setEditingLink(null); }}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <form onSubmit={handleUpdateLink} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Link Title <span className="text-red-500">*</span></Label>
+                  <Input
+                    placeholder="e.g., Web Design Services"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Custom Slug <span className="text-red-500">*</span></Label>
+                  <div className="flex">
+                    <span className="px-4 py-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-gray-500 text-sm font-medium flex items-center">
+                      pay.usevelcro.com/
+                    </span>
+                    <Input
+                      placeholder="your-link"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value.replace(/\s+/g, '-').toLowerCase() })}
+                      className="rounded-l-none focus:border-velcro-green focus:ring-velcro-green/20 rounded-r-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <textarea
+                  placeholder="Describe what this payment is for..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none resize-none h-24"
+                />
+              </div>
+
+              {/* Amount Type */}
+              <div className="space-y-4">
+                <Label>Amount Type</Label>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, amountType: 'fixed' })}
+                    className={`flex-1 p-4 rounded-xl border-2 text-center transition-all
+                      ${formData.amountType === 'fixed'
+                        ? 'border-velcro-green bg-velcro-green/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                  >
+                    <p className={`font-semibold ${formData.amountType === 'fixed' ? 'text-gray-900' : 'text-gray-600'}`}>
+                      Fixed Amount
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Set a specific price</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, amountType: 'open', amount: '' })}
+                    className={`flex-1 p-4 rounded-xl border-2 text-center transition-all
+                      ${formData.amountType === 'open'
+                        ? 'border-velcro-green bg-velcro-green/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                  >
+                    <p className={`font-semibold ${formData.amountType === 'open' ? 'text-gray-900' : 'text-gray-600'}`}>
+                      Open Amount
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Customer decides</p>
+                  </button>
+                </div>
+
+                {formData.amountType === 'fixed' && (
+                  <div className="space-y-2">
+                    <Label>Amount</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                          {currencySymbols[formData.currencies[0]]}
+                        </span>
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          value={formData.amount}
+                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                          className="pl-10 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Accepted Currencies</Label>
+                <div className="flex flex-wrap gap-2">
+                  {availableCurrencies.map((currency) => (
+                    <button
+                      key={currency}
+                      type="button"
+                      onClick={() => toggleCurrency(currency)}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all
+                        ${formData.currencies.includes(currency)
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                      {formData.currencies.includes(currency) && (
+                        <Check size={14} className="inline mr-1" />
+                      )}
+                      {currency}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => { setShowEditForm(false); setEditingLink(null); }}
+                  className="flex-1 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreview && previewLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden animate-fade-in">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Link Preview</h3>
+              <button
+                onClick={() => { setShowPreview(false); setPreviewLink(null); }}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Preview Card */}
+              <div className="bg-gradient-to-br from-velcro-navy to-blue-900 rounded-2xl p-6 text-white mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  {previewLink.linkType === 'donation' ? (
+                    <Heart size={24} className="text-red-400" />
+                  ) : (
+                    <ShoppingBag size={24} className="text-velcro-green" />
+                  )}
+                  <span className="text-sm text-white/70 capitalize">{previewLink.linkType}</span>
+                </div>
+                
+                <h2 className="text-xl font-bold mb-2">{previewLink.title}</h2>
+                <p className="text-white/70 text-sm mb-4">{previewLink.description || 'No description'}</p>
+                
+                {previewLink.amountType === 'fixed' && previewLink.amount ? (
+                  <div className="text-3xl font-bold">
+                    {currencySymbols[previewLink.currencies[0]]}{previewLink.amount.toLocaleString()}
+                  </div>
+                ) : (
+                  <div className="text-lg text-white/70">Enter any amount</div>
+                )}
+              </div>
+
+              {/* Customer Form Preview */}
+              <div className="space-y-3">
+                <p className="text-sm text-gray-500 mb-2">Customer will see:</p>
+                
+                {previewLink.collectEmail && (
+                  <div className="p-3 bg-gray-50 rounded-xl">
+                    <Label className="text-xs text-gray-500">Email Address</Label>
+                    <Input disabled placeholder="customer@example.com" className="mt-1 bg-white" />
+                  </div>
+                )}
+                
+                {previewLink.collectPhone && (
+                  <div className="p-3 bg-gray-50 rounded-xl">
+                    <Label className="text-xs text-gray-500">Phone Number</Label>
+                    <Input disabled placeholder="+234 801 234 5678" className="mt-1 bg-white" />
+                  </div>
+                )}
+                
+                {previewLink.collectMessage && (
+                  <div className="p-3 bg-gray-50 rounded-xl">
+                    <Label className="text-xs text-gray-500">Message (Optional)</Label>
+                    <textarea disabled placeholder="Add a note..." className="w-full mt-1 p-2 bg-white border rounded-lg text-sm" />
+                  </div>
+                )}
+
+                <Button className="w-full bg-velcro-green text-velcro-navy font-semibold rounded-xl mt-4">
+                  Pay Now
+                </Button>
+              </div>
+
+              <div className="mt-4 pt-4 border-t text-center">
+                <p className="text-xs text-gray-400">pay.usevelcro.com/{previewLink.slug}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

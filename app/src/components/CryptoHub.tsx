@@ -23,7 +23,10 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Mail
+  Mail,
+  Eye,
+  EyeOff,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,19 +35,19 @@ import { toast } from 'sonner';
 import type { UserKYC } from '@/App';
 
 const EXTERNAL_TOKENS = [
-  { symbol: 'USDC', name: 'USD Coin', logo: '/images/usdc-logo.png' },
-  { symbol: 'USDT', name: 'Tether USD', logo: '/logos/usdt.png' },
-  { symbol: 'CNGN', name: 'CNGN Stable', logo: '/logos/cngn.png' },
+  { symbol: 'USDC', name: 'USD Coin', logo: 'images/usdc-logo.png' },
+  { symbol: 'USDT', name: 'Tether USD', logo: 'logos/usdt.png' },
+  { symbol: 'CNGN', name: 'CNGN Stable', logo: 'logos/cngn.png' },
 ];
 
 const BLOCKCHAINS = [
-  { name: 'Solana', logo: '/images/solana-logo.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Ethereum', logo: '/logos/ethereum.png', tokens: ['USDC', 'USDT'] },
-  { name: 'BSC', logo: '/logos/bsc.png', tokens: ['USDC', 'USDT', 'CNGN'] },
-  { name: 'Polygon', logo: '/logos/polygon.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Arbitrum', logo: '/logos/arbitrum.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Base', logo: '/logos/base.png', tokens: ['USDC', 'USDT'] },
-  { name: 'Tron', logo: '/logos/tron.png', tokens: ['USDT'] },
+  { name: 'Solana', logo: 'images/solana-logo.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Ethereum', logo: 'logos/ethereum.png', tokens: ['USDC', 'USDT'] },
+  { name: 'BSC', logo: 'logos/bsc.png', tokens: ['USDC', 'USDT', 'CNGN'] },
+  { name: 'Polygon', logo: 'logos/polygon.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Arbitrum', logo: 'logos/arbitrum.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Base', logo: 'logos/base.png', tokens: ['USDC', 'USDT'] },
+  { name: 'Tron', logo: 'logos/tron.png', tokens: ['USDT'] },
 ];
 
 const NIGERIAN_BANKS = [
@@ -199,6 +202,16 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   const [sendAmount, setSendAmount] = useState('');
   const [sendAddress, setSendAddress] = useState('');
   
+  // Confirmation + PIN flow state
+  const [showBuyConfirm, setShowBuyConfirm] = useState(false);
+  const [showBuyPin, setShowBuyPin] = useState(false);
+  const [showSellConfirm, setShowSellConfirm] = useState(false);
+  const [showSellPin, setShowSellPin] = useState(false);
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
+  const [showSendPin, setShowSendPin] = useState(false);
+  const [pin, setPin] = useState(['', '', '', '']);
+  const [processingAction, setProcessingAction] = useState(false);
+  
   const remainingLimit = userKYC?.cryptoLimit ? userKYC.cryptoLimit - solanaBalance : 100 - solanaBalance;
 
   // Auto-verify bank account when 10 digits entered
@@ -253,6 +266,108 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   };
 
   const calculateFee = (amount: number) => amount * 0.005;
+
+  // Confirmation + PIN handlers
+  const handleInitiateBuy = () => {
+    const amount = Number(buyAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    setShowBuyConfirm(true);
+  };
+
+  const handleConfirmBuy = () => {
+    setShowBuyConfirm(false);
+    setShowBuyPin(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handleInitiateSell = () => {
+    const amount = Number(sellAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (amount > solanaBalance) {
+      toast.error('Insufficient USDC balance');
+      return;
+    }
+    const tier = userKYC?.tier || 'none';
+    const cryptoLimit = userKYC?.cryptoLimit || 100;
+    if (tier === 'none' && amount > cryptoLimit - solanaBalance + amount) {
+      toast.error(`Exceeds your $${cryptoLimit} limit. Complete KYC for higher limits.`);
+      return;
+    }
+    setShowSellConfirm(true);
+  };
+
+  const handleConfirmSell = () => {
+    setShowSellConfirm(false);
+    setShowSellPin(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handleInitiateSend = () => {
+    const amount = Number(sendAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (amount > solanaBalance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+    if (!sendAddress) {
+      toast.error('Please enter recipient address');
+      return;
+    }
+    setShowSendConfirm(true);
+  };
+
+  const handleConfirmSend = () => {
+    setShowSendConfirm(false);
+    setShowSendPin(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    if (value && index < 3) {
+      document.getElementById(`crypto-pin-${index + 1}`)?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
+      document.getElementById(`crypto-pin-${index - 1}`)?.focus();
+    }
+  };
+
+  const handlePinSubmit = async (action: 'buy' | 'sell' | 'send') => {
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter your 4-digit PIN');
+      return;
+    }
+    setProcessingAction(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (action === 'buy') {
+      await executeBuy();
+      setShowBuyPin(false);
+    } else if (action === 'sell') {
+      await executeSell();
+      setShowSellPin(false);
+    } else if (action === 'send') {
+      await executeSend();
+      setShowSendPin(false);
+    }
+    setPin(['', '', '', '']);
+    setProcessingAction(false);
+  };
 
   const formatDate = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -336,13 +451,8 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
     toast.success(`Send ${sellExternalToken} to this address within 30 minutes`);
   };
 
-  const handleBuyToMain = () => {
+  const executeBuy = async () => {
     const amount = Number(buyAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-    
     const fee = calculateFee(amount);
     const newTx: Transaction = {
       id: Date.now().toString(),
@@ -359,32 +469,15 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
     
     setTransactions([newTx, ...transactions]);
     toast.success(`Processing purchase of ${amount} USDC...`);
-    setTimeout(() => {
-      setSolanaBalance(prev => prev + amount);
-      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
-      toast.success(`${amount} USDC credited!`);
-      setBuyAmount('');
-    }, 2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setSolanaBalance(prev => prev + amount);
+    setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+    toast.success(`${amount} USDC credited!`);
+    setBuyAmount('');
   };
 
-  const handleSellFromMain = () => {
+  const executeSell = async () => {
     const amount = Number(sellAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-    if (amount > solanaBalance) {
-      toast.error('Insufficient USDC balance');
-      return;
-    }
-    
-    const tier = userKYC?.tier || 'none';
-    const cryptoLimit = userKYC?.cryptoLimit || 100;
-    if (tier === 'none' && amount > cryptoLimit - solanaBalance + amount) {
-      toast.error(`Exceeds your $${cryptoLimit} limit. Complete KYC for higher limits.`);
-      return;
-    }
-
     const fee = calculateFee(amount);
     const newTx: Transaction = {
       id: Date.now().toString(),
@@ -402,29 +495,15 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
     const destination = sellNGNDestination === 'main' ? 'main NGN account' : 'external NGN account';
     
     toast.success(`Selling ${amount} USDC...`);
-    setTimeout(() => {
-      setSolanaBalance(prev => prev - amount);
-      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
-      toast.success(`₦${(amount * sellRate).toLocaleString()} credited to ${destination}!`);
-      setSellAmount('');
-    }, 2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setSolanaBalance(prev => prev - amount);
+    setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+    toast.success(`₦${(amount * sellRate).toLocaleString()} credited to ${destination}!`);
+    setSellAmount('');
   };
 
-  const handleSend = () => {
+  const executeSend = async () => {
     const amount = Number(sendAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-    if (amount > solanaBalance) {
-      toast.error('Insufficient balance');
-      return;
-    }
-    if (!sendAddress) {
-      toast.error('Please enter recipient address');
-      return;
-    }
-
     const fee = calculateFee(amount);
     const newTx: Transaction = {
       id: Date.now().toString(),
@@ -440,14 +519,13 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
     };
     
     setTransactions([newTx, ...transactions]);
-    toast.success(`Sending ${amount} ${sendToken}...`);
-    setTimeout(() => {
-      setSolanaBalance(prev => prev - amount);
-      setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
-      toast.success(`${amount} USDC sent!`);
-      setSendAmount('');
-      setSendAddress('');
-    }, 2000);
+    toast.success(`Sending ${amount} USDC...`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setSolanaBalance(prev => prev - amount);
+    setTransactions(prev => prev.map(tx => tx.id === newTx.id ? { ...tx, status: 'completed' } : tx));
+    toast.success(`${amount} USDC sent!`);
+    setSendAmount('');
+    setSendAddress('');
   };
 
   const getTransactionIcon = (type: string) => {
@@ -644,7 +722,7 @@ Thank you.`;
                   }}
                   className="w-full flex items-center px-4 py-3 border border-green-200 hover:bg-green-50 hover:border-green-300 rounded-xl transition-colors"
                 >
-                  <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
                   <div className="text-left flex-1">
                     <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
                     <p className="text-xs text-gray-500">+234 800 123 4567</p>
@@ -668,21 +746,22 @@ Thank you.`;
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <img src="/images/solana-logo.png" alt="Solana" className="w-10 h-10" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
+            <img src="images/solana-logo.png" alt="Solana" className="w-8 h-8" />
+          </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-gray-900">Solana Stable Hub</h1>
-            <p className="text-gray-500 text-sm">Powered by Solana blockchain</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-display font-bold text-gray-900">Stable Hub</h1>
+              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">Solana</span>
+            </div>
+            <p className="text-gray-500 text-sm flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              Powered by Solana blockchain
+            </p>
           </div>
         </div>
-        <button
-          onClick={() => { setIsRefreshing(true); setTimeout(() => setIsRefreshing(false), 1000); }}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-xl"
-        >
-          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-          <span className="text-sm font-medium">Refresh</span>
-        </button>
       </div>
 
       {/* KYC Banner */}
@@ -708,7 +787,7 @@ Thank you.`;
 
       {/* Main Card */}
       <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
         </div>
         
@@ -716,20 +795,29 @@ Thank you.`;
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <img src="/images/usdc-logo.png" alt="USDC" className="w-10 h-10" />
+                <img src="images/usdc-logo.png" alt="USDC" className="w-10 h-10" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <img src="/images/solana-logo.png" alt="Solana" className="w-5 h-5" />
+                  <img src="images/solana-logo.png" alt="Solana" className="w-5 h-5" />
                   <span className="text-white/70 text-sm">USDC on Solana</span>
                 </div>
                 <p className="text-4xl font-display font-bold">{showBalance ? `$${solanaBalance.toLocaleString()}` : '****'}</p>
                 <p className="text-white/60 text-sm">≈ ₦{(solanaBalance * 1500).toLocaleString()} NGN</p>
               </div>
             </div>
-            <button onClick={() => setShowBalance(!showBalance)} className="p-2.5 hover:bg-white/10 rounded-xl">
-              <Info size={20} className="text-white/70" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { setIsRefreshing(true); setTimeout(() => setIsRefreshing(false), 1000); }}
+                className="p-2.5 hover:bg-white/10 rounded-xl"
+                title="Refresh"
+              >
+                <RefreshCw size={18} className={isRefreshing ? 'animate-spin text-white/90' : 'text-white/70'} />
+              </button>
+              <button onClick={() => setShowBalance(!showBalance)} className="p-2.5 hover:bg-white/10 rounded-xl">
+                {showBalance ? <EyeOff size={20} className="text-white/70" /> : <Eye size={20} className="text-white/70" />}
+              </button>
+            </div>
           </div>
 
           <div className="bg-white/10 rounded-xl p-4 mb-4">
@@ -744,20 +832,20 @@ Thank you.`;
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            <button onClick={() => setActiveTab('buy')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+          <div className="grid grid-cols-4 gap-2 relative z-20">
+            <button type="button" onClick={() => setActiveTab('buy')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl transition-all cursor-pointer">
               <ArrowDownLeft size={20} />
               <span className="text-xs font-medium">Buy</span>
             </button>
-            <button onClick={() => setActiveTab('sell')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+            <button type="button" onClick={() => setActiveTab('sell')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl transition-all cursor-pointer">
               <ArrowUpRight size={20} />
               <span className="text-xs font-medium">Sell</span>
             </button>
-            <button onClick={() => setActiveTab('send')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+            <button type="button" onClick={() => setActiveTab('send')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl transition-all cursor-pointer">
               <Send size={20} />
               <span className="text-xs font-medium">Send Out</span>
             </button>
-            <button onClick={() => setActiveTab('history')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 rounded-xl">
+            <button type="button" onClick={() => setActiveTab('history')} className="flex flex-col items-center gap-2 p-3 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-xl transition-all cursor-pointer">
               <History size={20} />
               <span className="text-xs font-medium">History</span>
             </button>
@@ -811,12 +899,12 @@ Thank you.`;
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <img src="/images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
+                  <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">USDC</p>
                   <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
                     <span>Solana</span>
                   </div>
                 </div>
@@ -853,7 +941,7 @@ Thank you.`;
               className={`p-4 rounded-xl border-2 transition-all text-left ${buyMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}
             >
               <div className="flex items-center gap-2 mb-2">
-                <img src="/images/solana-logo.png" alt="Solana" className="w-6 h-6" />
+                <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6" />
                 <span className={`font-medium ${buyMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>To Solana Wallet</span>
               </div>
               <p className="text-xs text-gray-500">USDC directly to main wallet</p>
@@ -1026,10 +1114,18 @@ Thank you.`;
           )}
 
           {buyMode === 'main' && (
-            <Button onClick={handleBuyToMain} disabled={!buyAmount || Number(buyAmount) <= 0}
-              className="w-full bg-purple-600 text-white h-12 rounded-xl">
-              Buy USDC to Solana Wallet
-            </Button>
+            <>
+              <div className="p-3 bg-blue-50 rounded-xl mb-4">
+                <p className="text-sm text-blue-700 flex items-start gap-2">
+                  <Info size={16} className="mt-0.5 flex-shrink-0" />
+                  <span>Amount will be debited from your main <strong>NGN Wallet</strong></span>
+                </p>
+              </div>
+              <Button onClick={handleInitiateBuy} disabled={!buyAmount || Number(buyAmount) <= 0}
+                className="w-full bg-purple-600 text-white h-12 rounded-xl">
+                Buy USDC to Solana Wallet
+              </Button>
+            </>
           )}
         </div>
       )}
@@ -1043,7 +1139,7 @@ Thank you.`;
             <button onClick={() => { setSellMode('main'); setSellOneTimeAddress(null); }}
               className={`p-4 rounded-xl border-2 transition-all text-left ${sellMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <img src="/images/solana-logo.png" alt="Solana" className="w-6 h-6" />
+                <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6" />
                 <span className={`font-medium ${sellMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>From Solana</span>
               </div>
               <p className="text-xs text-gray-500">Sell from main wallet</p>
@@ -1275,7 +1371,7 @@ Thank you.`;
           )}
 
           {sellMode === 'main' && (
-            <Button onClick={handleSellFromMain} disabled={!sellAmount || Number(sellAmount) <= 0 || Number(sellAmount) > solanaBalance}
+            <Button onClick={handleInitiateSell} disabled={!sellAmount || Number(sellAmount) <= 0 || Number(sellAmount) > solanaBalance}
               className="w-full bg-gray-900 text-white h-12 rounded-xl">
               Sell USDC & Receive NGN
             </Button>
@@ -1294,12 +1390,12 @@ Thank you.`;
             <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                  <img src="/images/usdc-logo.png" alt="USDC" className="w-6 h-6" />
+                  <img src="images/usdc-logo.png" alt="USDC" className="w-6 h-6" />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">USDC</p>
                   <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <img src="/images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
                     <span>Solana Main Wallet</span>
                   </div>
                 </div>
@@ -1339,7 +1435,7 @@ Thank you.`;
             </div>
 
             <Button 
-              onClick={handleSend} 
+              onClick={handleInitiateSend} 
               disabled={!sendAmount || Number(sendAmount) <= 0 || !sendAddress || Number(sendAmount) > solanaBalance}
               className="w-full bg-purple-600 text-white h-12 rounded-xl"
             >
@@ -1399,6 +1495,451 @@ Thank you.`;
 
       {/* Transaction Detail Modal */}
       {selectedTransaction && <TransactionDetailModal />}
+
+      {/* 
+      {showBuyConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowDownLeft size={28} className="text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Purchase</h3>
+              <p className="text-gray-500 text-sm mt-1">Review your buy details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You pay</span>
+                <span className="font-medium text-gray-900">₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You receive</span>
+                <span className="font-bold text-gray-900">{Number(buyAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Fee</span>
+                <span className="font-medium text-gray-900">${calculateFee(Number(buyAmount)).toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowBuyConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmBuy} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showBuyPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('buy')} disabled={processingAction} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm Purchase'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showSellConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowUpRight size={28} className="text-gray-700" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Sell</h3>
+              <p className="text-gray-500 text-sm mt-1">Review your sell details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You sell</span>
+                <span className="font-medium text-gray-900">{Number(sellAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You receive</span>
+                <span className="font-bold text-gray-900">₦{(Number(sellAmount) * sellRate).toLocaleString()} NGN</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Destination</span>
+                <span className="font-medium text-gray-900">{sellNGNDestination === 'main' ? 'Main Wallet' : 'External Account'}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowSellConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmSell} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSellPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-gray-700 focus:ring-2 focus:ring-gray-700/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('sell')} disabled={processingAction} className="w-full bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm Sell'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showSendConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send size={28} className="text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Send</h3>
+              <p className="text-gray-500 text-sm mt-1">Review transaction details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Amount</span>
+                <span className="font-bold text-gray-900">{Number(sendAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">To</span>
+                <span className="font-medium text-gray-900 text-right truncate max-w-[150px]">{sendAddress.slice(0, 8)}...{sendAddress.slice(-8)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Network</span>
+                <span className="font-medium text-gray-900">Solana</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowSendConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmSend} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSendPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('send')} disabled={processingAction} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Sending...
+                </>
+              ) : (
+                'Confirm Send'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+      */}
+      {/* BUY Confirmation Modal */}
+      {showBuyConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowDownLeft size={28} className="text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Purchase</h3>
+              <p className="text-gray-500 text-sm mt-1">Review your buy details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You pay</span>
+                <span className="font-medium text-gray-900">₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You receive</span>
+                <span className="font-bold text-gray-900">{Number(buyAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Fee</span>
+                <span className="font-medium text-gray-900">${calculateFee(Number(buyAmount)).toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowBuyConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmBuy} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BUY PIN Modal */}
+      {showBuyPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('buy')} disabled={processingAction} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm Purchase'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* SELL Confirmation Modal */}
+      {showSellConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowUpRight size={28} className="text-gray-700" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Sell</h3>
+              <p className="text-gray-500 text-sm mt-1">Review your sell details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You sell</span>
+                <span className="font-medium text-gray-900">{Number(sellAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">You receive</span>
+                <span className="font-bold text-gray-900">₦{(Number(sellAmount) * sellRate).toLocaleString()} NGN</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Destination</span>
+                <span className="font-medium text-gray-900">{sellNGNDestination === 'main' ? 'Main Wallet' : 'External Account'}</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowSellConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmSell} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SELL PIN Modal */}
+      {showSellPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-gray-700 focus:ring-2 focus:ring-gray-700/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('sell')} disabled={processingAction} className="w-full bg-gray-900 hover:bg-gray-800 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm Sell'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* SEND Confirmation Modal */}
+      {showSendConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendConfirm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send size={28} className="text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Confirm Send</h3>
+              <p className="text-gray-500 text-sm mt-1">Review transaction details</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Amount</span>
+                <span className="font-bold text-gray-900">{Number(sendAmount).toLocaleString()} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">To</span>
+                <span className="font-medium text-gray-900 text-right truncate max-w-[150px]">{sendAddress.slice(0, 8)}...{sendAddress.slice(-8)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Network</span>
+                <span className="font-medium text-gray-900">Solana</span>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowSendConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmSend} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SEND PIN Modal */}
+      {showSendPin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendPin(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+              <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
+            </div>
+            <div className="flex justify-center gap-3 mb-6">
+              {pin.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`crypto-pin-${index}`}
+                  type="password"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handlePinChange(index, e.target.value)}
+                  onKeyDown={(e) => handlePinKeyDown(index, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                  disabled={processingAction}
+                />
+              ))}
+            </div>
+            <Button onClick={() => handlePinSubmit('send')} disabled={processingAction} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-xl">
+              {processingAction ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin mr-2" />
+                  Sending...
+                </>
+              ) : (
+                'Confirm Send'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

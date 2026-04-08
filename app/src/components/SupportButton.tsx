@@ -72,7 +72,7 @@ export function SupportButton() {
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-green-50 transition-colors text-left group"
               >
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                  <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5" />
+                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">WhatsApp</p>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Info, ChevronDown, Send, AtSign, MessageCircle, Landmark, ArrowRight, Phone, Check, User, RefreshCw, Link2, Search } from 'lucide-react';
+import { X, Info, ChevronDown, Send, AtSign, MessageCircle, Landmark, ArrowRight, Phone, Check, User, RefreshCw, Link2, Search, Lock, Download, Copy, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,13 +22,13 @@ interface Currency {
 }
 
 const currencies: Currency[] = [
-  { code: 'NGN', name: 'Nigerian Naira', logo: '/logos/ng.png', balance: 2450000.50, symbol: '₦' },
-  { code: 'USD', name: 'US Dollar', logo: '/logos/us.png', balance: 0, symbol: '$' },
-  { code: 'EUR', name: 'Euro', logo: '/logos/eu.png', balance: 0, symbol: '€' },
-  { code: 'GBP', name: 'British Pound', logo: '/logos/gb.png', balance: 0, symbol: '£' },
-  { code: 'KES', name: 'Kenyan Shilling', logo: '/logos/ke.png', balance: 0, symbol: 'KSh' },
-  { code: 'EGP', name: 'Egyptian Pound', logo: '/logos/eg.png', balance: 0, symbol: 'E£' },
-  { code: 'ZAR', name: 'South African Rand', logo: '/logos/za.png', balance: 0, symbol: 'R' },
+  { code: 'NGN', name: 'Nigerian Naira', logo: 'logos/ng.png', balance: 2450000.50, symbol: '₦' },
+  { code: 'USD', name: 'US Dollar', logo: 'logos/us.png', balance: 0, symbol: '$' },
+  { code: 'EUR', name: 'Euro', logo: 'logos/eu.png', balance: 0, symbol: '€' },
+  { code: 'GBP', name: 'British Pound', logo: 'logos/gb.png', balance: 0, symbol: '£' },
+  { code: 'KES', name: 'Kenyan Shilling', logo: 'logos/ke.png', balance: 0, symbol: 'KSh' },
+  { code: 'EGP', name: 'Egyptian Pound', logo: 'logos/eg.png', balance: 0, symbol: 'E£' },
+  { code: 'ZAR', name: 'South African Rand', logo: 'logos/za.png', balance: 0, symbol: 'R' },
 ];
 
 const banks = [
@@ -75,6 +75,9 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
   const [tagVerified, setTagVerified] = useState(false);
   const [recipientPhone, setRecipientPhone] = useState('');
   const [note, setNote] = useState('');
+  const [view, setView] = useState<'form' | 'confirm' | 'pin' | 'success'>('form');
+  const [pin, setPin] = useState(['', '', '', '']);
+  const [generatedLink, setGeneratedLink] = useState('');
 
   // Auto-verify bank account when account number reaches 10 digits
   useEffect(() => {
@@ -134,7 +137,65 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
 
   if (!isOpen) return null;
 
+  const handleInitiateWithdraw = () => {
+    const withdrawAmount = Number(amount);
+    if (!withdrawAmount || withdrawAmount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (withdrawAmount > selectedCurrency.balance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
+    if (withdrawMethod === 'bank') {
+      if (!bankCode || !accountNumber || !accountVerified) {
+        toast.error('Please verify bank account details');
+        return;
+      }
+    } else if (withdrawMethod === 'velcrotag') {
+      if (!recipientTag || !tagVerified) {
+        toast.error('Please enter a valid VelcroTag');
+        return;
+      }
+    } else if (withdrawMethod === 'whatsapp') {
+      if (!recipientPhone || recipientPhone.length < 10) {
+        toast.error('Please enter a valid WhatsApp number');
+        return;
+      }
+    }
+    
+    setView('confirm');
+  };
+
+  const handleConfirmWithdraw = () => {
+    setView('pin');
+    setPin(['', '', '', '']);
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`withdraw-pin-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
+      const prevInput = document.getElementById(`withdraw-pin-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
   const handleWithdraw = async () => {
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter your 4-digit PIN');
+      return;
+    }
     const withdrawAmount = Number(amount);
     if (!withdrawAmount || withdrawAmount <= 0) {
       toast.error('Please enter a valid amount');
@@ -169,7 +230,7 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
     }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
     
     let successMessage = '';
@@ -181,10 +242,14 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
       successMessage = `Transfer of ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()} to WhatsApp ${recipientPhone} successful!`;
     } else if (withdrawMethod === 'link') {
       successMessage = `Payment link created for ${selectedCurrency.symbol}${withdrawAmount.toLocaleString()}! Share it with your recipient.`;
+      // Generate a unique link
+      const linkId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      setGeneratedLink(`https://usevelcro.com/pay/${linkId}`);
     }
     
     toast.success(successMessage);
-    onClose();
+    setView('success');
+    setPin(['', '', '', '']);
     setAmount('');
     setBankCode('');
     setAccountNumber('');
@@ -226,29 +291,31 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
-        {/* Header */}
-        <div className="p-5 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <Send size={20} className="text-red-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-display font-bold text-gray-900">Transfer</h2>
-                <p className="text-sm text-gray-500">Send money to anyone</p>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden animate-scale-in">
+        {view === 'form' && (
+          <>
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                    <Send size={20} className="text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-display font-bold text-gray-900">Transfer</h2>
+                    <p className="text-sm text-gray-500">Send money to anyone</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-            >
-              <X size={20} className="text-gray-500" />
-            </button>
-          </div>
-        </div>
-        
-        <div className="p-5 space-y-5">
+            
+            <div className="p-5 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
           {/* Currency Selection */}
           <div>
             <Label className="text-sm text-gray-600 mb-2 block">Select Currency</Label>
@@ -686,37 +753,225 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
             </div>
           )}
           
-          {/* Fee Info */}
-          <div className="p-3 bg-blue-50 rounded-xl flex items-start gap-2">
-            <Info size={16} className="text-blue-600 mt-0.5" />
-            <div>
-              <p className="text-sm text-blue-700">Transaction Fee</p>
-              <p className="text-xs text-blue-600">
-                {selectedCurrency.code === 'NGN' 
-                  ? 'Under ₦10k: ₦25 | ₦10k-₦100k: ₦30 | Above ₦100k: ₦100'
-                  : '0.5% fee capped at $5 equivalent'}
-              </p>
-            </div>
-          </div>
         </div>
         
-        {/* Footer */}
-        <div className="p-5 border-t border-gray-100">
-          <Button
-            onClick={handleWithdraw}
-            disabled={isLoading || (withdrawMethod === 'bank' && !accountVerified) || (withdrawMethod === 'velcrotag' && !tagVerified) || !amountNum}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl disabled:opacity-50"
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <ArrowRight size={18} className="mr-2" />
+            {/* Footer */}
+            <div className="p-5 border-t border-gray-100">
+              <Button
+                onClick={handleInitiateWithdraw}
+                disabled={isLoading || (withdrawMethod === 'bank' && !accountVerified) || (withdrawMethod === 'velcrotag' && !tagVerified) || !amountNum}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl disabled:opacity-50"
+              >
                 {withdrawMethod === 'bank' ? 'Transfer to Bank' : withdrawMethod === 'link' ? 'Generate Link' : 'Send Money'}
-              </>
-            )}
-          </Button>
-        </div>
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Confirmation View */}
+        {view === 'confirm' && (
+          <div className="h-full flex flex-col bg-white">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Confirm Transfer</h3>
+              <button onClick={() => setView('form')} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Amount</span>
+                  <span className="font-medium">{selectedCurrency.symbol}{Number(amount).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Fee</span>
+                  <span className="font-medium">{selectedCurrency.symbol}{calculateFee(Number(amount))}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between">
+                  <span className="text-gray-700 font-medium">Total</span>
+                  <span className="font-bold text-lg">{selectedCurrency.symbol}{(Number(amount) + calculateFee(Number(amount))).toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-4">
+                <p className="text-sm text-blue-700">
+                  {withdrawMethod === 'bank' && accountName && (
+                    <>Transfer to: <strong>{accountName}</strong><br />Account: {accountNumber}<br />Bank: {banks.find(b => b.code === bankCode)?.name}</>
+                  )}
+                  {withdrawMethod === 'velcrotag' && tagVerified && (
+                    <>Send to: <strong>@{recipientTag}</strong> ({recipientName})</>
+                  )}
+                  {withdrawMethod === 'whatsapp' && (
+                    <>Send to WhatsApp: <strong>{recipientPhone}</strong></>
+                  )}
+                  {withdrawMethod === 'link' && (
+                    <>Create payment link for <strong>{selectedCurrency.symbol}{Number(amount).toLocaleString()}</strong></>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 flex gap-3">
+              <Button variant="outline" onClick={() => setView('form')} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmWithdraw} className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        )}
+
+        {/* PIN View */}
+        {view === 'pin' && (
+          <div className="h-full flex flex-col bg-white">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Enter PIN</h3>
+              <button onClick={() => setView('form')} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 p-6 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
+              <div className="flex gap-3 mb-6">
+                {pin.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`withdraw-pin-${index}`}
+                    type="password"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(index, e.target.value)}
+                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    disabled={isLoading}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <Button onClick={handleWithdraw} disabled={isLoading} className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl">
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                ) : null}
+                Confirm Transfer
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Success View */}
+        {view === 'success' && (
+          <div className="h-full flex flex-col bg-white">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">
+                {withdrawMethod === 'link' ? 'Link Created!' : 'Transfer Successful'}
+              </h3>
+              <button onClick={() => { setView('form'); onClose(); }} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 p-6 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <Check size={40} className="text-green-600" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900 mb-2">
+                {withdrawMethod === 'link' ? 'Link Ready!' : 'Transfer Complete!'}
+              </p>
+              <p className="text-gray-500 text-center mb-6">
+                {withdrawMethod === 'bank' && accountName && (
+                  <>Your transfer to {accountName} has been initiated.</>
+                )}
+                {withdrawMethod === 'velcrotag' && tagVerified && (
+                  <>Money sent to @{recipientTag} ({recipientName}).</>
+                )}
+                {withdrawMethod === 'whatsapp' && (
+                  <>WhatsApp transfer to {recipientPhone} initiated.</>
+                )}
+                {withdrawMethod === 'link' && (
+                  <>Share this link with your recipient to claim the funds.</>
+                )}
+              </p>
+              
+              {/* Link-specific UI */}
+              {withdrawMethod === 'link' && generatedLink && (
+                <div className="w-full max-w-xs mb-6 space-y-3">
+                  {/* Link display */}
+                  <div className="bg-gray-50 rounded-xl p-3 flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value={generatedLink} 
+                      readOnly 
+                      className="flex-1 bg-transparent text-sm text-gray-700 outline-none"
+                    />
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedLink);
+                        toast.success('Link copied!');
+                      }}
+                      className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                  
+                  {/* Share buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const message = `Hi! I've sent you ${selectedCurrency.symbol}${Number(amount).toLocaleString()}. Click this link to claim: ${generatedLink}`;
+                        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                      }}
+                      className="flex items-center justify-center gap-2 p-3 bg-green-50 hover:bg-green-100 border border-green-200 rounded-xl transition-colors"
+                    >
+                      <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5" />
+                      <span className="text-sm font-medium text-green-700">WhatsApp</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const subject = 'Payment from Velcro';
+                        const body = `Hi! I've sent you ${selectedCurrency.symbol}${Number(amount).toLocaleString()}. Click this link to claim: ${generatedLink}`;
+                        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+                      }}
+                      className="flex items-center justify-center gap-2 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
+                    >
+                      <Mail size={18} className="text-blue-600" />
+                      <span className="text-sm font-medium text-blue-700">Email</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Non-link methods show amount summary and receipt */}
+              {withdrawMethod !== 'link' && (
+                <>
+                  <div className="bg-gray-50 rounded-xl p-4 w-full max-w-xs mb-6">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-500">Amount</span>
+                      <span className="font-medium">{selectedCurrency.symbol}{Number(amount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Total</span>
+                      <span className="font-bold">{selectedCurrency.symbol}{total.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      toast.success('Receipt downloaded!');
+                    }} 
+                    variant="outline" 
+                    className="w-full max-w-xs mb-3 rounded-xl"
+                  >
+                    <Download size={18} className="mr-2" />
+                    Download Receipt
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <Button onClick={() => { setView('form'); onClose(); }} className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl">
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Link2, Copy, Check, Clock, Lock, MessageSquare, ChevronDown, RefreshCw, Shield } from 'lucide-react';
+import { X, Link2, Copy, Check, Clock, Lock, MessageSquare, ChevronDown, RefreshCw, Shield, Lock as LockIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -55,16 +55,19 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
   const [isCreating, setIsCreating] = useState(false);
   const [createdLink, setCreatedLink] = useState<PaymentSendLink | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [pin, setPin] = useState(['', '', '', '']);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currencies: Currency[] = [
-    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', logo: '/logos/ng.png', balance: balances.NGN || 0 },
-    { code: 'USD', name: 'US Dollar', symbol: '$', logo: '/logos/us.png', balance: balances.USD || 0 },
-    { code: 'EUR', name: 'Euro', symbol: '€', logo: '/logos/eu.png', balance: balances.EUR || 0 },
-    { code: 'GBP', name: 'British Pound', symbol: '£', logo: '/logos/gb.png', balance: balances.GBP || 0 },
-    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', logo: '/logos/ke.png', balance: balances.KES || 0 },
-    { code: 'USDC', name: 'USD Coin', symbol: '$', logo: '/images/usdc-logo.png', balance: balances.USDC || 0 },
+    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', logo: 'logos/ng.png', balance: balances.NGN || 0 },
+    { code: 'USD', name: 'US Dollar', symbol: '$', logo: 'logos/us.png', balance: balances.USD || 0 },
+    { code: 'EUR', name: 'Euro', symbol: '€', logo: 'logos/eu.png', balance: balances.EUR || 0 },
+    { code: 'GBP', name: 'British Pound', symbol: '£', logo: 'logos/gb.png', balance: balances.GBP || 0 },
+    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', logo: 'logos/ke.png', balance: balances.KES || 0 },
+    { code: 'USDC', name: 'USD Coin', symbol: '$', logo: 'images/usdc-logo.png', balance: balances.USDC || 0 },
   ];
 
   const selectedCurrencyData = currencies.find(c => c.code === selectedCurrency);
@@ -108,7 +111,7 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
     return Math.random().toString(36).substring(2, 10).toUpperCase();
   };
 
-  const handleCreateLink = async () => {
+  const handleInitiateCreate = () => {
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       toast.error('Please enter a valid amount');
@@ -119,12 +122,45 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
       return;
     }
     if (usePincode && pincode.length !== 4) {
-      toast.error('Please enter a 4-digit PIN');
+      toast.error('Please enter a 4-digit PIN for the link');
+      return;
+    }
+    setShowConfirm(true);
+  };
+
+  const handleConfirmCreate = () => {
+    setShowConfirm(false);
+    setShowPin(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`sendlink-pin-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
+      const prevInput = document.getElementById(`sendlink-pin-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleCreateLink = async () => {
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter your 4-digit PIN');
       return;
     }
 
+    const numAmount = parseFloat(amount);
     setIsCreating(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const linkId = generateLinkId();
     const expiresAt = new Date();
@@ -146,6 +182,8 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
     onCreateLink(newLink);
     setCreatedLink(newLink);
     setIsCreating(false);
+    setShowPin(false);
+    setPin(['', '', '', '']);
     toast.success('Payment link created successfully!');
   };
 
@@ -479,20 +517,97 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
         {/* Footer */}
         <div className="p-5 border-t border-gray-100">
           <Button
-            onClick={handleCreateLink}
+            onClick={handleInitiateCreate}
             disabled={!amount || parseFloat(amount) <= 0 || parseFloat(amount) > (selectedCurrencyData?.balance || 0) || (usePincode && pincode.length !== 4) || isCreating}
             className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl disabled:opacity-50"
           >
-            {isCreating ? (
-              <>
-                <RefreshCw size={18} className="animate-spin mr-2" />
-                Creating Link...
-              </>
-            ) : (
-              'Create Payment Link'
-            )}
+            Create Payment Link
           </Button>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirm && (
+          <div className="absolute inset-0 bg-white rounded-2xl z-10 flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Confirm Create Link</h3>
+              <button onClick={() => setShowConfirm(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Amount</span>
+                  <span className="font-medium">{selectedCurrencyData?.symbol}{parseFloat(amount).toLocaleString()} {selectedCurrency}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Expires in</span>
+                  <span className="font-medium">{expirationHours} hours</span>
+                </div>
+                {usePincode && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">PIN Protected</span>
+                    <span className="font-medium">Yes</span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-amber-50 rounded-xl p-4">
+                <p className="text-sm text-amber-700">
+                  This will deduct <strong>{selectedCurrencyData?.symbol}{parseFloat(amount).toLocaleString()}</strong> from your wallet and create a claimable link.
+                </p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 flex gap-3">
+              <Button variant="outline" onClick={() => setShowConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmCreate} className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        )}
+
+        {/* PIN Modal */}
+        {showPin && (
+          <div className="absolute inset-0 bg-white rounded-2xl z-20 flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Enter PIN</h3>
+              <button onClick={() => setShowPin(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 p-6 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <LockIcon size={28} className="text-blue-600" />
+              </div>
+              <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
+              <div className="flex gap-3 mb-6">
+                {pin.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`sendlink-pin-${index}`}
+                    type="password"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(index, e.target.value)}
+                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    disabled={isCreating}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <Button onClick={handleCreateLink} disabled={isCreating} className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl">
+                {isCreating ? (
+                  <>
+                    <RefreshCw size={18} className="animate-spin mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  'Confirm Create Link'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

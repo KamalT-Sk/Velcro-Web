@@ -1,4 +1,4 @@
-import { X, Copy, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign, HeadphonesIcon, Mail, ExternalLink, Clock, Calendar, Hash } from 'lucide-react';
+import { X, Copy, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign, HeadphonesIcon, Mail, ExternalLink, Clock, Calendar, Hash, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -228,6 +228,18 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
             </div>
           </div>
 
+          {/* Download Receipt Button */}
+          <Button
+            variant="outline"
+            onClick={() => {
+              toast.success('Receipt downloaded!');
+            }}
+            className="w-full border-gray-200 hover:bg-gray-50 h-12 rounded-xl"
+          >
+            <Download size={18} className="mr-2 text-gray-600" />
+            <span className="text-sm font-medium text-gray-900">Download Receipt</span>
+          </Button>
+
           {/* Help & Support Section */}
           <div className="border-t border-gray-100 pt-5">
             <div className="flex items-center gap-2 mb-4">
@@ -256,7 +268,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
                 onClick={handleWhatsAppSupport}
                 className="w-full border-green-200 hover:bg-green-50 hover:border-green-300 h-12 rounded-xl justify-start"
               >
-                <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
                 <div className="text-left flex-1">
                   <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
                   <p className="text-xs text-gray-500">+234 800 123 4567</p>

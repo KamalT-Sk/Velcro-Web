@@ -12,6 +12,7 @@ import { WhatsAppSyncModal } from './components/WhatsAppSyncModal';
 import { ClaimPage } from './components/ClaimPage';
 import { SupportButton } from './components/SupportButton';
 import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 export type View = 'dashboard' | 'payment-links' | 'crypto' | 'utilities' | 'settings' | 'cards';
 export type AuthState = 'signup' | 'login' | 'otp' | 'pin' | 'authenticated';
@@ -78,6 +79,12 @@ function App() {
     setShowKYC(false);
   };
 
+  const handleSignOut = () => {
+    setAuthState('login');
+    setCurrentView('dashboard');
+    toast.success('Signed out successfully');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -111,6 +118,7 @@ function App() {
         velcroPoints={velcroPoints}
         onWhatsAppClick={() => setShowWhatsAppSync(true)}
         onKYCClick={() => setShowKYC(true)}
+        onSignOut={handleSignOut}
       />
       
       <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-auto">

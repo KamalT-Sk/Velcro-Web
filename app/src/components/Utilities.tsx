@@ -27,7 +27,8 @@ import {
   Wallet,
   History,
   RotateCcw,
-  Lock
+  Lock,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,10 +61,10 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-blue-50',
     borderColor: 'border-blue-100',
     providers: [
-      { id: 'mtn', name: 'MTN Nigeria', logo: '/utilities/mtn.png', category: 'airtime' },
-      { id: 'airtel', name: 'Airtel Nigeria', logo: '/utilities/airtel.png', category: 'airtime' },
-      { id: 'glo', name: 'Glo Mobile', logo: '/utilities/glo.png', category: 'airtime' },
-      { id: '9mobile', name: '9mobile', logo: '/utilities/9mobile.png', category: 'airtime' },
+      { id: 'mtn', name: 'MTN Nigeria', logo: 'utilities/mtn.png', category: 'airtime' },
+      { id: 'airtel', name: 'Airtel Nigeria', logo: 'utilities/airtel.png', category: 'airtime' },
+      { id: 'glo', name: 'Glo Mobile', logo: 'utilities/glo.png', category: 'airtime' },
+      { id: '9mobile', name: '9mobile', logo: 'utilities/9mobile.png', category: 'airtime' },
     ],
   },
   {
@@ -74,8 +75,8 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-100',
     providers: [
-      { id: 'spectranet', name: 'Spectranet', logo: '/utilities/spectranet.png', category: 'internet' },
-      { id: 'smile', name: 'Smile Nigeria', logo: '/utilities/smile.png', category: 'internet' },
+      { id: 'spectranet', name: 'Spectranet', logo: 'utilities/spectranet.png', category: 'internet' },
+      { id: 'smile', name: 'Smile Nigeria', logo: 'utilities/smile.png', category: 'internet' },
     ],
   },
   {
@@ -86,8 +87,8 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-100',
     providers: [
-      { id: 'ikedc', name: 'IKEDC (Ikeja)', logo: '/utilities/ikedc.png', category: 'electricity' },
-      { id: 'ekedc', name: 'EKEDC (Eko)', logo: '/utilities/ekedc.png', category: 'electricity' },
+      { id: 'ikedc', name: 'IKEDC (Ikeja)', logo: 'utilities/ikedc.png', category: 'electricity' },
+      { id: 'ekedc', name: 'EKEDC (Eko)', logo: 'utilities/ekedc.png', category: 'electricity' },
     ],
   },
   {
@@ -98,9 +99,9 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-rose-50',
     borderColor: 'border-rose-100',
     providers: [
-      { id: 'dstv', name: 'DStv', logo: '/utilities/dstv.png', category: 'cable' },
-      { id: 'gotv', name: 'GOtv', logo: '/utilities/gotv.png', category: 'cable' },
-      { id: 'startimes', name: 'StarTimes', logo: '/utilities/startimes.png', category: 'cable' },
+      { id: 'dstv', name: 'DStv', logo: 'utilities/dstv.png', category: 'cable' },
+      { id: 'gotv', name: 'GOtv', logo: 'utilities/gotv.png', category: 'cable' },
+      { id: 'startimes', name: 'StarTimes', logo: 'utilities/startimes.png', category: 'cable' },
     ],
   },
   {
@@ -111,7 +112,7 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-cyan-50',
     borderColor: 'border-cyan-100',
     providers: [
-      { id: 'lwc', name: 'Lagos Water Corporation', logo: '/utilities/ekedc.png', category: 'water' },
+      { id: 'lwc', name: 'Lagos Water Corporation', logo: 'utilities/ekedc.png', category: 'water' },
     ],
   },
   {
@@ -122,8 +123,8 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-100',
     providers: [
-      { id: 'bet9ja', name: 'Bet9ja', logo: '/utilities/startimes.png', category: 'betting' },
-      { id: 'sportybet', name: 'SportyBet', logo: '/utilities/spectranet.png', category: 'betting' },
+      { id: 'bet9ja', name: 'Bet9ja', logo: 'utilities/startimes.png', category: 'betting' },
+      { id: 'sportybet', name: 'SportyBet', logo: 'utilities/spectranet.png', category: 'betting' },
     ],
   },
   {
@@ -134,7 +135,7 @@ const utilityCategories: UtilityCategory[] = [
     bgColor: 'bg-slate-50',
     borderColor: 'border-slate-100',
     providers: [
-      { id: 'lasra', name: 'LASRA (Lagos)', logo: '/utilities/ikedc.png', category: 'government' },
+      { id: 'lasra', name: 'LASRA (Lagos)', logo: 'utilities/ikedc.png', category: 'government' },
     ],
   },
 ];
@@ -163,6 +164,18 @@ interface PaymentSource {
   type: 'ngn' | 'usdc';
   balance: number;
   symbol: string;
+}
+
+interface UtilityTransaction {
+  id: string;
+  providerId: string;
+  providerName: string;
+  category: string;
+  amount: number;
+  currency: 'NGN' | 'USDC';
+  accountNumber: string;
+  status: 'completed' | 'pending' | 'failed';
+  timestamp: Date;
 }
 
 export function Utilities() {
@@ -197,27 +210,110 @@ export function Utilities() {
   ];
 
   const airlines: AirlineData[] = [
-    { id: 'airpeace', name: 'Air Peace', logo: '/utilities/airpeace.png' },
-    { id: 'arikair', name: 'Arik Air', logo: '/utilities/arikair.png' },
-    { id: 'danaair', name: 'Dana Air', logo: '/utilities/danaair.png' },
-    { id: 'greenafrica', name: 'Green Africa', logo: '/utilities/greenafrica.png' },
+    { id: 'airpeace', name: 'Air Peace', logo: 'utilities/airpeace.png' },
+    { id: 'arikair', name: 'Arik Air', logo: 'utilities/arikair.png' },
+    { id: 'danaair', name: 'Dana Air', logo: 'utilities/danaair.png' },
+    { id: 'greenafrica', name: 'Green Africa', logo: 'utilities/greenafrica.png' },
   ];
 
   const filteredCategories = utilityCategories.filter(cat => 
     cat.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handlePay = async () => {
+  const getAmountLimits = () => {
+    switch (selectedProvider?.category) {
+      case 'airtime':
+      case 'data':
+        return { min: 50, max: 50000 };
+      case 'electricity':
+        return { min: 500, max: 500000 };
+      case 'cable':
+        return { min: 1000, max: 50000 };
+      case 'internet':
+        return { min: 1000, max: 100000 };
+      case 'water':
+        return { min: 500, max: 100000 };
+      case 'betting':
+        return { min: 100, max: 1000000 };
+      default:
+        return { min: 100, max: 1000000 };
+    }
+  };
+
+  const handlePayClick = () => {
     if (!amount || !accountNumber) {
       toast.error('Please fill in all fields');
       return;
     }
+    
+    const { min, max } = getAmountLimits();
+    const amountNum = parseFloat(amount);
+    
+    if (amountNum < min) {
+      toast.error(`Minimum amount is ${paymentSources.find(s => s.type === paymentSource)?.symbol}${min.toLocaleString()}`);
+      return;
+    }
+    if (amountNum > max) {
+      toast.error(`Maximum amount is ${paymentSources.find(s => s.type === paymentSource)?.symbol}${max.toLocaleString()}`);
+      return;
+    }
+    
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmPay = () => {
+    setShowConfirmModal(false);
+    setShowPinModal(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`pin-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
+      const prevInput = document.getElementById(`pin-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handlePinSubmit = async () => {
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter your 4-digit PIN');
+      return;
+    }
+    
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsProcessing(false);
 
     const source = paymentSources.find(s => s.type === paymentSource);
+    
+    const newTransaction: UtilityTransaction = {
+      id: `UTX-${Date.now().toString(36).toUpperCase()}`,
+      providerId: selectedProvider?.id || '',
+      providerName: selectedProvider?.name || '',
+      category: selectedProvider?.category || '',
+      amount: parseFloat(amount),
+      currency: paymentSource === 'ngn' ? 'NGN' : 'USDC',
+      accountNumber,
+      status: 'completed',
+      timestamp: new Date(),
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+    
+    setShowPinModal(false);
+    setPin(['', '', '', '']);
+    
     toast.success(`Payment of ${source?.symbol}${amount} to ${selectedProvider?.name} successful!`);
     
     setAmount('');
@@ -258,27 +354,172 @@ export function Utilities() {
     setPassengers(1);
   };
 
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  };
+
+  const getCategoryIcon = (categoryId: string) => {
+    const icons: Record<string, React.ElementType> = {
+      airtime: Smartphone,
+      data: Wifi,
+      internet: Wifi,
+      electricity: Zap,
+      cable: Monitor,
+      water: Droplets,
+      betting: Ticket,
+      government: Landmark,
+    };
+    return icons[categoryId] || Zap;
+  };
+
+  const getCategoryColor = (categoryId: string) => {
+    const colors: Record<string, string> = {
+      airtime: 'text-blue-600 bg-blue-50',
+      data: 'text-blue-600 bg-blue-50',
+      internet: 'text-purple-600 bg-purple-50',
+      electricity: 'text-amber-600 bg-amber-50',
+      cable: 'text-rose-600 bg-rose-50',
+      water: 'text-cyan-600 bg-cyan-50',
+      betting: 'text-emerald-600 bg-emerald-50',
+      government: 'text-slate-600 bg-slate-50',
+    };
+    return colors[categoryId] || 'text-gray-600 bg-gray-50';
+  };
+
+  const renderHistory = () => (
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900">Payment History</h2>
+          <p className="text-gray-500 text-sm">View your past utility payments</p>
+        </div>
+      </div>
+
+      {transactions.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Receipt size={24} className="text-gray-400" />
+          </div>
+          <h3 className="text-gray-900 font-medium mb-1">No transactions yet</h3>
+          <p className="text-gray-500 text-sm mb-4">Your utility payment history will appear here</p>
+          <button
+            onClick={() => setActiveTab('pay')}
+            className="px-4 py-2 bg-velcro-green text-velcro-navy font-medium rounded-xl hover:bg-velcro-green-dark transition-colors"
+          >
+            Pay a Bill
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {transactions.map((tx) => {
+            const Icon = getCategoryIcon(tx.category);
+            const colorClass = getCategoryColor(tx.category);
+            return (
+              <div
+                key={tx.id}
+                className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 transition-colors"
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClass}`}>
+                  <Icon size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900 truncate">{tx.providerName}</h4>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      tx.status === 'completed' ? 'bg-green-100 text-green-700' :
+                      tx.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {tx.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500">{tx.accountNumber} • {formatDate(tx.timestamp)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900">
+                    {tx.currency === 'NGN' ? '₦' : '$'}{tx.amount.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-400">{tx.id}</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.success('Receipt downloaded!');
+                    }}
+                    className="mt-2 text-xs text-velcro-navy hover:text-velcro-green flex items-center gap-1 ml-auto"
+                  >
+                    <Download size={12} />
+                    Receipt
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   const renderCategories = () => (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header with Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Bills & Utilities</h1>
           <p className="text-gray-500 text-sm">Pay for airtime, data, electricity, and more</p>
         </div>
         
-        {/* Search */}
-        <div className="relative w-full sm:max-w-xs">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search utilities..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none"
-          />
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+          <button
+            onClick={() => setActiveTab('pay')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'pay' 
+                ? 'bg-white text-gray-900 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Zap size={16} />
+            Pay Bill
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'history' 
+                ? 'bg-white text-gray-900 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <History size={16} />
+            History
+          </button>
         </div>
       </div>
+
+      {activeTab === 'history' ? (
+        renderHistory()
+      ) : (
+        <>
+          {/* Search */}
+          <div className="relative w-full sm:max-w-xs">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search utilities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none"
+            />
+          </div>
 
       {/* Flight Booking Card */}
       <div 
@@ -358,6 +599,8 @@ export function Utilities() {
           ))}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 
@@ -657,7 +900,30 @@ export function Utilities() {
 
           {/* Amount */}
           <div>
-            <Label className="text-sm text-gray-600 mb-2 block">Amount</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm text-gray-600">Amount</Label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setAmount(getAmountLimits().min.toString())}
+                  className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600 transition-colors"
+                >
+                  Min
+                </button>
+                <button
+                  onClick={() => {
+                    const source = paymentSources.find(s => s.type === paymentSource);
+                    const { max } = getAmountLimits();
+                    if (source) {
+                      const maxAmount = Math.min(source.balance, max);
+                      setAmount(maxAmount.toString());
+                    }
+                  }}
+                  className="text-xs px-2 py-1 bg-velcro-green/10 hover:bg-velcro-green/20 rounded-md text-velcro-green font-medium transition-colors"
+                >
+                  Max
+                </button>
+              </div>
+            </div>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
                 {paymentSources.find(s => s.type === paymentSource)?.symbol}
@@ -665,11 +931,19 @@ export function Utilities() {
               <Input
                 type="number"
                 placeholder="0.00"
+                min={getAmountLimits().min}
+                max={getAmountLimits().max}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val.length <= 9) setAmount(val);
+                }}
                 className="pl-10 py-3 sm:py-4 text-lg focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
               />
             </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Min: {paymentSources.find(s => s.type === paymentSource)?.symbol}{getAmountLimits().min.toLocaleString()} • Max: {paymentSources.find(s => s.type === paymentSource)?.symbol}{getAmountLimits().max.toLocaleString()}
+            </p>
           </div>
 
           {/* Payment Source */}
@@ -680,37 +954,143 @@ export function Utilities() {
                 <button
                   key={source.type}
                   onClick={() => setPaymentSource(source.type)}
-                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all text-left
+                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all text-left flex items-center gap-3
                     ${paymentSource === source.type 
                       ? 'border-velcro-green bg-velcro-green/5' 
                       : 'border-gray-100 hover:border-gray-200'}`}
                 >
-                  <p className={`font-medium text-sm ${paymentSource === source.type ? 'text-gray-900' : 'text-gray-600'}`}>
-                    {source.type === 'ngn' ? 'Naira Wallet' : 'USDC Wallet'}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {source.symbol}{source.balance.toLocaleString()}
-                  </p>
+                  {source.type === 'ngn' ? (
+                    <img src="logos/ng.png" alt="NGN" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <img src="logos/usdc.png" alt="USDC" className="w-8 h-8 rounded-full object-cover" />
+                  )}
+                  <div>
+                    <p className={`font-medium text-sm ${paymentSource === source.type ? 'text-gray-900' : 'text-gray-600'}`}>
+                      {source.type === 'ngn' ? 'Naira Wallet' : 'USDC Wallet'}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {source.symbol}{source.balance.toLocaleString()}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
 
           <Button 
-            onClick={handlePay}
+            onClick={handlePayClick}
             disabled={isProcessing}
             className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
           >
-            {isProcessing ? (
-              <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
-            ) : (
-              <>
-                <CheckCircle size={18} className="mr-2" />
-                Pay Now
-              </>
-            )}
+            <CheckCircle size={18} className="mr-2" />
+            Continue
           </Button>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-velcro-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Receipt size={28} className="text-velcro-green" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Confirm Payment</h3>
+                <p className="text-gray-500 text-sm mt-1">Review your payment details</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-500 text-sm">Provider</span>
+                  <span className="font-medium text-gray-900">{selectedProvider?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 text-sm">Account</span>
+                  <span className="font-medium text-gray-900">{accountNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 text-sm">Amount</span>
+                  <span className="font-bold text-gray-900">
+                    {paymentSources.find(s => s.type === paymentSource)?.symbol}{parseFloat(amount || '0').toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 text-sm">Fee</span>
+                  <span className="font-medium text-gray-900">Free</span>
+                </div>
+                <div className="border-t border-gray-200 pt-3 mt-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 font-medium">Total</span>
+                    <span className="font-bold text-lg text-gray-900">
+                      {paymentSources.find(s => s.type === paymentSource)?.symbol}{parseFloat(amount || '0').toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 h-12 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmPay}
+                  className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PIN Modal */}
+        {showPinModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isProcessing && setShowPinModal(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lock size={28} className="text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
+                <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm payment</p>
+              </div>
+
+              <div className="flex justify-center gap-3 mb-6">
+                {pin.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`pin-${index}`}
+                    type="password"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(index, e.target.value)}
+                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    disabled={isProcessing}
+                  />
+                ))}
+              </div>
+
+              <Button
+                onClick={handlePinSubmit}
+                disabled={isProcessing}
+                className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+              >
+                {isProcessing ? (
+                  <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                ) : (
+                  'Pay Now'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { X, ArrowRightLeft, ChevronDown, Info, RefreshCw, Check } from 'lucide-react';
+import { X, ArrowRightLeft, ChevronDown, Info, RefreshCw, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -50,6 +50,9 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown] = useState(false);
   const [conversionSuccess, setConversionSuccess] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [pin, setPin] = useState(['', '', '', '']);
   
   const fromDropdownRef = useRef<HTMLDivElement>(null);
   const toDropdownRef = useRef<HTMLDivElement>(null);
@@ -73,13 +76,13 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
 
   // Available currencies based on balances
   const availableCurrencies: Currency[] = useMemo(() => [
-    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', logo: '/logos/ng.png', balance: balances.NGN || 0, type: 'fiat' },
-    { code: 'USD', name: 'US Dollar', symbol: '$', logo: '/logos/us.png', balance: balances.USD || 0, type: 'fiat' },
-    { code: 'EUR', name: 'Euro', symbol: '€', logo: '/logos/eu.png', balance: balances.EUR || 0, type: 'fiat' },
-    { code: 'GBP', name: 'British Pound', symbol: '£', logo: '/logos/gb.png', balance: balances.GBP || 0, type: 'fiat' },
-    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', logo: '/logos/ke.png', balance: balances.KES || 0, type: 'fiat' },
-    { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', logo: '/logos/eg.png', balance: balances.EGP || 0, type: 'fiat' },
-    { code: 'ZAR', name: 'South African Rand', symbol: 'R', logo: '/logos/za.png', balance: balances.ZAR || 0, type: 'fiat' },
+    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', logo: 'logos/ng.png', balance: balances.NGN || 0, type: 'fiat' },
+    { code: 'USD', name: 'US Dollar', symbol: '$', logo: 'logos/us.png', balance: balances.USD || 0, type: 'fiat' },
+    { code: 'EUR', name: 'Euro', symbol: '€', logo: 'logos/eu.png', balance: balances.EUR || 0, type: 'fiat' },
+    { code: 'GBP', name: 'British Pound', symbol: '£', logo: 'logos/gb.png', balance: balances.GBP || 0, type: 'fiat' },
+    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', logo: 'logos/ke.png', balance: balances.KES || 0, type: 'fiat' },
+    { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', logo: 'logos/eg.png', balance: balances.EGP || 0, type: 'fiat' },
+    { code: 'ZAR', name: 'South African Rand', symbol: 'R', logo: 'logos/za.png', balance: balances.ZAR || 0, type: 'fiat' },
     { code: 'USDC', name: 'USD Coin', symbol: '$', logo: '/images/usdc-logo.png', balance: balances.USDC || 1250, type: 'crypto' },
   ], [balances]);
 
@@ -135,7 +138,7 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
     }
   };
 
-  const handleConvert = async () => {
+  const handleInitiateConvert = () => {
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       toast.error('Please enter a valid amount');
@@ -145,19 +148,52 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
       toast.error('Insufficient balance');
       return;
     }
+    setShowConfirm(true);
+  };
 
+  const handleConfirmConvert = () => {
+    setShowConfirm(false);
+    setShowPin(true);
+    setPin(['', '', '', '']);
+  };
+
+  const handlePinChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`convert-pin-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
+      const prevInput = document.getElementById(`convert-pin-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleConvert = async () => {
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter your 4-digit PIN');
+      return;
+    }
+
+    const numAmount = parseFloat(amount);
     setIsConverting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
     onConvert(fromCurrency, toCurrency, numAmount);
     setIsConverting(false);
+    setShowPin(false);
     setConversionSuccess(true);
+    setPin(['', '', '', '']);
     
     toast.success(`Successfully converted ${currencySymbols[fromCurrency]}${numAmount.toLocaleString()} to ${toCurrency}`);
     
-    // Reset after showing success
     setTimeout(() => {
       setConversionSuccess(false);
       setAmount('');
@@ -168,6 +204,9 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
   const handleClose = () => {
     setAmount('');
     setConversionSuccess(false);
+    setShowConfirm(false);
+    setShowPin(false);
+    setPin(['', '', '', '']);
     onClose();
   };
 
@@ -404,20 +443,94 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
         {/* Footer */}
         <div className="p-5 border-t border-gray-100">
           <Button
-            onClick={handleConvert}
+            onClick={handleInitiateConvert}
             disabled={!amount || parseFloat(amount) <= 0 || !hasEnoughBalance || isConverting}
             className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl disabled:opacity-50"
           >
-            {isConverting ? (
-              <>
-                <RefreshCw size={18} className="animate-spin mr-2" />
-                Converting...
-              </>
-            ) : (
-              'Convert Now'
-            )}
+            Convert Now
           </Button>
         </div>
+
+        {/* Confirmation Modal */}
+        {showConfirm && (
+          <div className="absolute inset-0 bg-white rounded-2xl z-10 flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Confirm Conversion</h3>
+              <button onClick={() => setShowConfirm(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">From</span>
+                  <span className="font-medium">{currencySymbols[fromCurrency]}{parseFloat(amount).toLocaleString()} {fromCurrency}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">To</span>
+                  <span className="font-medium">{currencySymbols[toCurrency]}{convertedAmount.toFixed(2)} {toCurrency}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Fee</span>
+                  <span className="font-medium">{currencySymbols[fromCurrency]}{fee.toFixed(2)}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between">
+                  <span className="text-gray-700 font-medium">Total Deduction</span>
+                  <span className="font-bold text-lg">{currencySymbols[fromCurrency]}{totalDeduction.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 flex gap-3">
+              <Button variant="outline" onClick={() => setShowConfirm(false)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConfirmConvert} className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl">Confirm</Button>
+            </div>
+          </div>
+        )}
+
+        {/* PIN Modal */}
+        {showPin && (
+          <div className="absolute inset-0 bg-white rounded-2xl z-20 flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-gray-900">Enter PIN</h3>
+              <button onClick={() => setShowPin(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 p-6 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <Lock size={28} className="text-blue-600" />
+              </div>
+              <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
+              <div className="flex gap-3 mb-6">
+                {pin.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`convert-pin-${index}`}
+                    type="password"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handlePinChange(index, e.target.value)}
+                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    disabled={isConverting}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <Button onClick={handleConvert} disabled={isConverting} className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl">
+                {isConverting ? (
+                  <>
+                    <RefreshCw size={18} className="animate-spin mr-2" />
+                    Converting...
+                  </>
+                ) : (
+                  'Confirm Conversion'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
