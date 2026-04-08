@@ -26,7 +26,9 @@ import {
   Mail,
   Eye,
   EyeOff,
-  Lock
+  Lock,
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,19 +138,23 @@ interface OneTimeAddress {
 interface CryptoHubProps {
   userKYC: UserKYC;
   onOpenKYC: () => void;
+  hasWallet: boolean;
+  walletAddress: string;
+  onGenerateWallet: () => void;
 }
 
 type TimerType = ReturnType<typeof setInterval>;
 
-export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
+export function CryptoHub({ userKYC, onOpenKYC, hasWallet, walletAddress: propWalletAddress, onGenerateWallet }: CryptoHubProps) {
   const [activeTab, setActiveTab] = useState<'wallet' | 'buy' | 'sell' | 'send' | 'history'>('wallet');
   const [showBalance, setShowBalance] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   
-  const [solanaBalance, setSolanaBalance] = useState(1250.00);
-  const solanaAddress = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+  // Use prop wallet address if available, otherwise empty
+  const solanaAddress = propWalletAddress || '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+  const [solanaBalance, setSolanaBalance] = useState(hasWallet ? 1250.00 : 0);
   
   const buyRate = 1500;
   const sellRate = 1480;
@@ -224,6 +230,14 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
       return () => clearTimeout(timer);
     }
   }, [externalAccountNumber, externalBankCode, sellNGNDestination, externalAccountName]);
+
+  // Auto-select external mode when no wallet
+  useEffect(() => {
+    if (!hasWallet) {
+      setBuyMode('external');
+      setSellMode('external');
+    }
+  }, [hasWallet]);
 
   useEffect(() => {
     let interval: TimerType;
@@ -764,8 +778,47 @@ Thank you.`;
         </div>
       </div>
 
-      {/* KYC Banner */}
-      {userKYC?.tier === 'none' && (
+      {/* Generate Wallet CTA - For new users without wallet */}
+      {!hasWallet && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet size={24} className="text-purple-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Start with basic access</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Use crypto features up to $100 without full verification. Create your USDC wallet instantly.
+              </p>
+              <button
+                onClick={onGenerateWallet}
+                className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-2"
+              >
+                <Sparkles size={16} />
+                Generate Wallet
+              </button>
+            </div>
+          </div>
+          
+          <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <Shield size={14} className="text-green-500" />
+              Self-custody
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check size={14} className="text-green-500" />
+              Instant setup
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check size={14} className="text-green-500" />
+              No KYC required
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* KYC Banner - Only show if wallet exists */}
+      {hasWallet && userKYC?.tier === 'none' && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex items-start gap-3">
             <AlertCircle size={20} className="text-amber-600 mt-0.5" />
@@ -785,7 +838,8 @@ Thank you.`;
         </div>
       )}
 
-      {/* Main Card */}
+      {/* Main Card - Only show if wallet exists */}
+      {hasWallet && (
       <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -852,6 +906,7 @@ Thank you.`;
           </div>
         </div>
       </div>
+      )}
 
       {/* Rates Banner */}
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
@@ -891,9 +946,9 @@ Thank you.`;
         })}
       </div>
 
-      {/* WALLET TAB */}
+      {/* WALLET TAB - Requires wallet */}
       {activeTab === 'wallet' && (
-        <div className="space-y-4">
+        <div className={`space-y-4 ${!hasWallet ? 'opacity-50 blur-sm pointer-events-none' : ''}`}>
           <h2 className="text-lg font-display font-semibold text-gray-900">Your Assets</h2>
           <div className="bg-white rounded-xl border border-gray-100 p-4">
             <div className="flex items-center justify-between">
@@ -938,8 +993,16 @@ Thank you.`;
           <div className="grid grid-cols-2 gap-3 mb-6">
             <button
               onClick={() => { setBuyMode('main'); setBuyOneTimeAddress(null); }}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${buyMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}
+              disabled={!hasWallet}
+              className={`p-4 rounded-xl border-2 transition-all text-left relative ${
+                buyMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'
+              } ${!hasWallet ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
             >
+              {!hasWallet && (
+                <span className="absolute top-2 right-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-medium rounded-full">
+                  Need wallet
+                </span>
+              )}
               <div className="flex items-center gap-2 mb-2">
                 <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6" />
                 <span className={`font-medium ${buyMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>To Solana Wallet</span>
@@ -1136,14 +1199,26 @@ Thank you.`;
           <h2 className="text-lg font-display font-semibold text-gray-900 mb-6">Sell Crypto</h2>
           
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <button onClick={() => { setSellMode('main'); setSellOneTimeAddress(null); }}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${sellMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}>
+            <button 
+              onClick={() => { setSellMode('main'); setSellOneTimeAddress(null); }}
+              disabled={!hasWallet}
+              className={`p-4 rounded-xl border-2 transition-all text-left relative ${
+                sellMode === 'main' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'
+              } ${!hasWallet ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
+            >
+              {!hasWallet && (
+                <span className="absolute top-2 right-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] font-medium rounded-full">
+                  Need wallet
+                </span>
+              )}
               <div className="flex items-center gap-2 mb-2">
                 <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6" />
                 <span className={`font-medium ${sellMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>From Solana</span>
               </div>
               <p className="text-xs text-gray-500">Sell from main wallet</p>
-              <p className="text-xs text-purple-600 mt-1">${solanaBalance.toLocaleString()} available</p>
+              {hasWallet && (
+                <p className="text-xs text-purple-600 mt-1">${solanaBalance.toLocaleString()} available</p>
+              )}
             </button>
             <button onClick={() => { setSellMode('external'); setSellOneTimeAddress(null); }}
               className={`p-4 rounded-xl border-2 transition-all text-left ${sellMode === 'external' ? 'border-purple-500 bg-purple-50' : 'border-gray-100'}`}>
@@ -1379,9 +1454,9 @@ Thank you.`;
         </div>
       )}
 
-      {/* SEND TAB */}
+      {/* SEND TAB - Requires wallet (sending FROM your wallet) */}
       {activeTab === 'send' && (
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className={`bg-white rounded-xl border border-gray-100 p-6 ${!hasWallet ? 'opacity-50 blur-sm pointer-events-none' : ''}`}>
           <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">Send Out Crypto</h2>
           <p className="text-sm text-gray-500 mb-6">Send from your main Solana USDC wallet</p>
           

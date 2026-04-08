@@ -8,14 +8,15 @@ import {
   ArrowRight, 
   Check,
   CheckCircle,
-  Shield,
   Eye,
   EyeOff,
   Sparkles,
-  Fingerprint,
   KeyRound,
   Smartphone,
-  UserCircle
+  UserCircle,
+  MessageCircle,
+  ArrowLeft,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ interface AuthFlowProps {
 }
 
 type UserType = 'individual' | 'business';
+type SignUpStep = 'name-email' | 'email-otp' | 'phone' | 'whatsapp-otp' | 'pin';
 
 export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps) {
   const [userType, setUserType] = useState<UserType>('individual');
@@ -38,16 +40,19 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     email: '',
     phone: '',
   });
-  const [otp, setOtp] = useState(['', '', '', '', '']);
+  const [signUpStep, setSignUpStep] = useState<SignUpStep>('name-email');
+  const [emailOtp, setEmailOtp] = useState(['', '', '', '', '']);
+  const [whatsappOtp, setWhatsappOtp] = useState(['', '', '', '', '']);
   const [pin, setPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [showPin, setShowPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUpFlow, setIsSignUpFlow] = useState(false);
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  // Step 1: Handle Name + Email submission
+  const handleNameEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email || !formData.phone) {
+    if (!formData.fullName || !formData.email) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -55,8 +60,75 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
     setIsSignUpFlow(true);
-    setAuthState('otp');
+    setSignUpStep('email-otp');
     toast.success('OTP sent to your email!');
+  };
+
+  // Step 2: Handle Email OTP verification
+  const handleEmailOtpVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailOtp.some(digit => !digit)) {
+      toast.error('Please enter complete OTP');
+      return;
+    }
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    setSignUpStep('phone');
+    toast.success('Email verified!');
+  };
+
+  // Step 3: Handle Phone submission
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.phone) {
+      toast.error('Please enter your phone number');
+      return;
+    }
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    setSignUpStep('whatsapp-otp');
+    toast.success('OTP sent to your WhatsApp!');
+  };
+
+  // Step 4: Handle WhatsApp OTP verification
+  const handleWhatsappOtpVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (whatsappOtp.some(digit => !digit)) {
+      toast.error('Please enter complete OTP');
+      return;
+    }
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    setSignUpStep('pin');
+    toast.success('Phone verified! Set your PIN');
+  };
+
+  // Handle PIN set
+  const handlePinSet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin.some(digit => !digit)) {
+      toast.error('Please enter complete PIN');
+      return;
+    }
+    
+    if (confirmPin.some(digit => !digit)) {
+      toast.error('Please confirm your PIN');
+      return;
+    }
+    
+    if (pin.join('') !== confirmPin.join('')) {
+      toast.error('PINs do not match');
+      return;
+    }
+    
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    onComplete();
+    toast.success('Welcome to Velcro!');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -73,58 +145,22 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     toast.success('OTP sent to your email!');
   };
 
-  const handleOtpVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.some(digit => !digit)) {
-      toast.error('Please enter complete OTP');
-      return;
-    }
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    
-    // Both signup and login go to PIN screen
-    setAuthState('pin');
-    if (isSignUpFlow) {
-      toast.success('OTP verified! Set your PIN');
-    } else {
-      toast.success('OTP verified! Enter your PIN');
-    }
-  };
-
-  const handlePinSet = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin.some(digit => !digit)) {
-      toast.error('Please enter complete PIN');
-      return;
-    }
-    
-    // Only check confirm PIN during signup
-    if (isSignUpFlow) {
-      if (confirmPin.some(digit => !digit)) {
-        toast.error('Please confirm your PIN');
-        return;
-      }
-      if (pin.join('') !== confirmPin.join('')) {
-        toast.error('PINs do not match');
-        return;
-      }
-    }
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    onComplete();
-    toast.success(isSignUpFlow ? 'Welcome to Velcro!' : 'Welcome back!');
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
+  const handleOtpChange = (index: number, value: string, type: 'email' | 'whatsapp') => {
     if (value.length > 1) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    if (value && index < 4) {
-      document.getElementById(`otp-${index + 1}`)?.focus();
+    if (type === 'email') {
+      const newOtp = [...emailOtp];
+      newOtp[index] = value;
+      setEmailOtp(newOtp);
+      if (value && index < 4) {
+        document.getElementById(`email-otp-${index + 1}`)?.focus();
+      }
+    } else {
+      const newOtp = [...whatsappOtp];
+      newOtp[index] = value;
+      setWhatsappOtp(newOtp);
+      if (value && index < 4) {
+        document.getElementById(`whatsapp-otp-${index + 1}`)?.focus();
+      }
     }
   };
 
@@ -147,6 +183,70 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     }
   };
 
+  const resendOtp = (type: 'email' | 'whatsapp') => {
+    toast.success(`OTP resent to your ${type === 'email' ? 'email' : 'WhatsApp'}!`);
+  };
+
+  // Progress indicator for signup steps
+  const renderProgress = () => {
+    const steps = [
+      { id: 'name-email', label: 'Account' },
+      { id: 'email-otp', label: 'Verify Email' },
+      { id: 'phone', label: 'Phone' },
+      { id: 'whatsapp-otp', label: 'Verify Phone' },
+      { id: 'pin', label: 'PIN' },
+    ];
+    const currentIndex = steps.findIndex(s => s.id === signUpStep);
+    
+    return (
+      <div className="flex items-center justify-center gap-1 mb-6">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center">
+            <div 
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index <= currentIndex ? 'bg-velcro-green' : 'bg-gray-200'
+              }`}
+            />
+            {index < steps.length - 1 && (
+              <div className={`w-4 h-0.5 ${index < currentIndex ? 'bg-velcro-green' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Progress indicator for login steps
+  const renderLoginProgress = () => {
+    const steps = [
+      { id: 'login', label: 'Email' },
+      { id: 'otp', label: 'Verify' },
+      { id: 'pin', label: 'PIN' },
+    ];
+    
+    // Determine current step index based on authState
+    let currentIndex = 0;
+    if (authState === 'otp') currentIndex = 1;
+    else if (authState === 'pin') currentIndex = 2;
+    
+    return (
+      <div className="flex items-center justify-center gap-1 mb-6">
+        {steps.map((step, index) => (
+          <div key={step.id} className="flex items-center">
+            <div 
+              className={`w-2 h-2 rounded-full transition-colors ${
+                index <= currentIndex ? 'bg-blue-500' : 'bg-gray-200'
+              }`}
+            />
+            {index < steps.length - 1 && (
+              <div className={`w-4 h-0.5 ${index < currentIndex ? 'bg-blue-500' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
       {/* Background Pattern */}
@@ -166,110 +266,389 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
 
         {/* Auth Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-xl border border-gray-100">
+          
+          {/* SIGNUP FLOW */}
           {authState === 'signup' && (
             <>
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
-                  <UserCircle className="text-velcro-green" size={28} />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create Account</h2>
-                <p className="text-gray-500 text-sm">Join thousands using Velcro</p>
-              </div>
+              {renderProgress()}
 
-              {/* User Type Toggle */}
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-6">
-                <button
-                  onClick={() => setUserType('individual')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all
-                    ${userType === 'individual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  <User size={18} />
-                  <span className="hidden sm:inline">Individual</span>
-                  <span className="sm:hidden">Personal</span>
-                </button>
-                <button
-                  onClick={() => setUserType('business')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all
-                    ${userType === 'business' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  <Building2 size={18} />
-                  Business
-                </button>
-              </div>
-
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div>
-                  <Label className="text-gray-600 text-sm mb-1.5 block">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type="text"
-                      placeholder="John Doe"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                    />
+              {/* STEP 1: Name + Email */}
+              {signUpStep === 'name-email' && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
+                      <UserCircle className="text-velcro-green" size={28} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create Account</h2>
+                    <p className="text-gray-500 text-sm">Let's get started with your details</p>
                   </div>
-                </div>
 
-                <div>
-                  <Label className="text-gray-600 text-sm mb-1.5 block">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                    />
+                  {/* User Type Toggle */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-xl mb-6">
+                    <button
+                      onClick={() => setUserType('individual')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all
+                        ${userType === 'individual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      <User size={18} />
+                      <span className="hidden sm:inline">Individual</span>
+                      <span className="sm:hidden">Personal</span>
+                    </button>
+                    <button
+                      onClick={() => setUserType('business')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all
+                        ${userType === 'business' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      <Building2 size={18} />
+                      Business
+                    </button>
                   </div>
-                </div>
 
-                <div>
-                  <Label className="text-gray-600 text-sm mb-1.5 block">Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type="tel"
-                      placeholder="+234 800 000 0000"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
-                    />
+                  <form onSubmit={handleNameEmailSubmit} className="space-y-4">
+                    <div>
+                      <Label className="text-gray-600 text-sm mb-1.5 block">Full Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          type="text"
+                          placeholder="John Doe"
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                          className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-gray-600 text-sm mb-1.5 block">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          type="email"
+                          placeholder="you@example.com"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl mt-2"
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          Continue
+                          <ArrowRight size={18} className="ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+
+                  <p className="text-center text-gray-500 text-sm mt-6">
+                    Already have an account?{' '}
+                    <button 
+                      onClick={() => setAuthState('login')}
+                      className="text-velcro-green hover:text-velcro-green-dark font-medium"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </>
+              )}
+
+              {/* STEP 2: Email OTP */}
+              {signUpStep === 'email-otp' && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200">
+                      <Mail className="text-amber-600" size={28} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify Email</h2>
+                    <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
+                    <p className="text-gray-900 font-medium text-sm mt-1">{formData.email}</p>
                   </div>
-                </div>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl mt-2"
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Create Account
-                      <ArrowRight size={18} className="ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
+                  <form onSubmit={handleEmailOtpVerify} className="space-y-6">
+                    <div className="flex justify-center gap-2 sm:gap-3">
+                      {emailOtp.map((digit, index) => (
+                        <input
+                          key={index}
+                          id={`email-otp-${index}`}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(index, e.target.value, 'email')}
+                          className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                        />
+                      ))}
+                    </div>
 
-              <p className="text-center text-gray-500 text-sm mt-6">
-                Already have an account?{' '}
-                <button 
-                  onClick={() => setAuthState('login')}
-                  className="text-velcro-green hover:text-velcro-green-dark font-medium"
-                >
-                  Sign In
-                </button>
-              </p>
+                    <div className="text-center">
+                      <p className="text-gray-500 text-sm">
+                        Didn't receive code?{' '}
+                        <button 
+                          type="button"
+                          onClick={() => resendOtp('email')}
+                          className="text-velcro-green hover:text-velcro-green-dark font-medium"
+                        >
+                          Resend
+                        </button>
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSignUpStep('name-email')}
+                        className="flex-1 h-12 rounded-xl"
+                      >
+                        <ArrowLeft size={18} className="mr-2" />
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading || emailOtp.some(digit => !digit)}
+                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                      >
+                        {isLoading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          'Verify'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* STEP 3: Phone Number */}
+              {signUpStep === 'phone' && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-200">
+                      <Smartphone className="text-green-600" size={28} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Phone Number</h2>
+                    <p className="text-gray-500 text-sm">Add your WhatsApp number</p>
+                  </div>
+
+                  {/* WhatsApp Info Box */}
+                  <div className="p-4 bg-green-50 rounded-xl border border-green-100 mb-6">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <MessageCircle size={20} className="text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-green-800 font-medium">Use your WhatsApp number</p>
+                        <p className="text-xs text-green-600 mt-1">
+                          We'll send your OTP via WhatsApp for faster and more secure verification.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                    <div>
+                      <Label className="text-gray-600 text-sm mb-1.5 block">WhatsApp Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          type="tel"
+                          placeholder="+234 800 000 0000"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          className="pl-11 py-3 focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSignUpStep('email-otp')}
+                        className="flex-1 h-12 rounded-xl"
+                      >
+                        <ArrowLeft size={18} className="mr-2" />
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                      >
+                        {isLoading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            Continue
+                            <ArrowRight size={18} className="ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* STEP 4: WhatsApp OTP */}
+              {signUpStep === 'whatsapp-otp' && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-200">
+                      <MessageCircle className="text-green-600" size={28} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify WhatsApp</h2>
+                    <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
+                    <p className="text-gray-900 font-medium text-sm mt-1">{formData.phone}</p>
+                  </div>
+
+                  <form onSubmit={handleWhatsappOtpVerify} className="space-y-6">
+                    <div className="flex justify-center gap-2 sm:gap-3">
+                      {whatsappOtp.map((digit, index) => (
+                        <input
+                          key={index}
+                          id={`whatsapp-otp-${index}`}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(index, e.target.value, 'whatsapp')}
+                          className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                        />
+                      ))}
+                    </div>
+
+                    <div className="text-center">
+                      <p className="text-gray-500 text-sm">
+                        Didn't receive code?{' '}
+                        <button 
+                          type="button"
+                          onClick={() => resendOtp('whatsapp')}
+                          className="text-velcro-green hover:text-velcro-green-dark font-medium"
+                        >
+                          Resend
+                        </button>
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSignUpStep('phone')}
+                        className="flex-1 h-12 rounded-xl"
+                      >
+                        <ArrowLeft size={18} className="mr-2" />
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={isLoading || whatsappOtp.some(digit => !digit)}
+                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                      >
+                        {isLoading ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          'Verify'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
+
+              {/* STEP 5: PIN Setup */}
+              {signUpStep === 'pin' && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
+                      <Lock className="text-blue-600" size={28} />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create PIN</h2>
+                    <p className="text-gray-500 text-sm">Secure your account with a 4-digit PIN</p>
+                  </div>
+
+                  <form onSubmit={handlePinSet} className="space-y-6">
+                    {/* PIN Input */}
+                    <div>
+                      <Label className="text-gray-600 text-sm mb-3 block text-center">Enter PIN</Label>
+                      <div className="flex justify-center gap-3">
+                        {pin.map((digit, index) => (
+                          <input
+                            key={index}
+                            id={`pin-${index}`}
+                            type={showPin ? 'text' : 'password'}
+                            inputMode="numeric"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handlePinChange(index, e.target.value, 'pin')}
+                            className="w-14 h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Confirm PIN */}
+                    <div>
+                      <Label className="text-gray-600 text-sm mb-3 block text-center">Confirm PIN</Label>
+                      <div className="flex justify-center gap-3">
+                        {confirmPin.map((digit, index) => (
+                          <input
+                            key={index}
+                            id={`confirm-pin-${index}`}
+                            type={showPin ? 'text' : 'password'}
+                            inputMode="numeric"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handlePinChange(index, e.target.value, 'confirm')}
+                            className="w-14 h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Show PIN Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPin(!showPin)}
+                      className="flex items-center justify-center gap-2 text-gray-500 text-sm mx-auto hover:text-gray-700"
+                    >
+                      {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPin ? 'Hide PIN' : 'Show PIN'}
+                    </button>
+
+                    <Button
+                      type="submit"
+                      disabled={isLoading || pin.some(d => !d) || confirmPin.some(d => !d)}
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          Complete Setup
+                          <Sparkles size={18} className="ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </>
+              )}
             </>
           )}
 
+          {/* LOGIN FLOW */}
           {authState === 'login' && (
             <>
+              {renderLoginProgress()}
               <div className="text-center mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
                   <CheckCircle className="text-blue-600" size={28} />
@@ -321,7 +700,13 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               <p className="text-center text-gray-500 text-sm mt-6">
                 Don't have an account?{' '}
                 <button 
-                  onClick={() => setAuthState('signup')}
+                  onClick={() => {
+                    setAuthState('signup');
+                    setSignUpStep('name-email');
+                    setFormData({ fullName: '', email: '', phone: '' });
+                    setEmailOtp(['', '', '', '', '']);
+                    setWhatsappOtp(['', '', '', '', '']);
+                  }}
                   className="text-velcro-green hover:text-velcro-green-dark font-medium"
                 >
                   Sign Up
@@ -330,8 +715,10 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             </>
           )}
 
-          {authState === 'otp' && (
+          {/* OTP Screen for Login */}
+          {authState === 'otp' && !isSignUpFlow && (
             <>
+              {renderLoginProgress()}
               <div className="text-center mb-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200">
                   <KeyRound className="text-amber-600" size={28} />
@@ -340,132 +727,142 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 <p className="text-gray-500 text-sm">We've sent a 5-digit code to {formData.email || 'your email'}</p>
               </div>
 
-              <form onSubmit={handleOtpVerify} className="space-y-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (emailOtp.some(digit => !digit)) {
+                  toast.error('Please enter complete OTP');
+                  return;
+                }
+                setIsLoading(true);
+                setTimeout(() => {
+                  setIsLoading(false);
+                  setAuthState('pin');
+                  toast.success('OTP verified! Enter your PIN');
+                }, 1000);
+              }} className="space-y-6">
                 <div className="flex justify-center gap-2 sm:gap-3">
-                  {otp.map((digit, index) => (
+                  {emailOtp.map((digit, index) => (
                     <input
                       key={index}
-                      id={`otp-${index}`}
+                      id={`login-otp-${index}`}
                       type="text"
+                      inputMode="numeric"
                       maxLength={1}
                       value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      className="w-11 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                      onChange={(e) => {
+                        if (e.target.value.length > 1) return;
+                        const newOtp = [...emailOtp];
+                        newOtp[index] = e.target.value;
+                        setEmailOtp(newOtp);
+                        if (e.target.value && index < 4) {
+                          document.getElementById(`login-otp-${index + 1}`)?.focus();
+                        }
+                      }}
+                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
                     />
                   ))}
                 </div>
 
-                <Button 
+                <div className="text-center">
+                  <p className="text-gray-500 text-sm">
+                    Didn't receive code?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => toast.success('OTP resent!')}
+                      className="text-velcro-green hover:text-velcro-green-dark font-medium"
+                    >
+                      Resend
+                    </button>
+                  </p>
+                </div>
+
+                <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || emailOtp.some(digit => !digit)}
                   className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    'Verify OTP'
+                    'Verify'
                   )}
                 </Button>
               </form>
-
-              <p className="text-center text-gray-500 text-sm mt-6">
-                Didn't receive code?{' '}
-                <button 
-                  onClick={() => toast.success('New OTP sent!')}
-                  className="text-velcro-green hover:text-velcro-green-dark font-medium"
-                >
-                  Resend
-                </button>
-              </p>
             </>
           )}
 
-          {authState === 'pin' && (
+          {/* PIN Screen for Login */}
+          {authState === 'pin' && !isSignUpFlow && (
             <>
+              {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-purple-200">
-                  <KeyRound className="text-purple-600" size={28} />
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
+                  <Lock className="text-blue-600" size={28} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">
-                  {isSignUpFlow ? 'Create Your PIN' : 'Enter Your PIN'}
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  {isSignUpFlow ? 'Set a 4-digit PIN for secure transactions' : 'Enter your 4-digit PIN to continue'}
-                </p>
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter PIN</h2>
+                <p className="text-gray-500 text-sm">Enter your 4-digit PIN to continue</p>
               </div>
 
-              <form onSubmit={handlePinSet} className="space-y-6">
-                {/* PIN Input */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-3 block">
-                    {isSignUpFlow ? 'Enter PIN' : 'PIN'}
-                  </Label>
-                  <div className="flex justify-center gap-2 sm:gap-3">
-                    {pin.map((digit, index) => (
-                      <input
-                        key={index}
-                        id={`pin-${index}`}
-                        type={showPin ? 'text' : 'password'}
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handlePinChange(index, e.target.value, 'pin')}
-                        className="w-11 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
-                      />
-                    ))}
-                  </div>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (pin.some(digit => !digit)) {
+                  toast.error('Please enter complete PIN');
+                  return;
+                }
+                setIsLoading(true);
+                setTimeout(() => {
+                  setIsLoading(false);
+                  onComplete();
+                  toast.success('Welcome back!');
+                }, 1000);
+              }} className="space-y-6">
+                <div className="flex justify-center gap-3">
+                  {pin.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`login-pin-${index}`}
+                      type={showPin ? 'text' : 'password'}
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => {
+                        if (e.target.value.length > 1) return;
+                        const newPin = [...pin];
+                        newPin[index] = e.target.value;
+                        setPin(newPin);
+                        if (e.target.value && index < 3) {
+                          document.getElementById(`login-pin-${index + 1}`)?.focus();
+                        }
+                      }}
+                      className="w-14 h-16 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                    />
+                  ))}
                 </div>
 
-                {/* Confirm PIN Input - Only for Signup */}
-                {isSignUpFlow && (
-                  <div>
-                    <Label className="text-sm text-gray-600 mb-3 block">Confirm PIN</Label>
-                    <div className="flex justify-center gap-2 sm:gap-3">
-                      {confirmPin.map((digit, index) => (
-                        <input
-                          key={index}
-                          id={`confirm-pin-${index}`}
-                          type={showPin ? 'text' : 'password'}
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handlePinChange(index, e.target.value, 'confirm')}
-                          className="w-11 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Show/Hide PIN */}
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
-                  className="flex items-center gap-2 text-sm text-gray-500 mx-auto"
+                  className="flex items-center justify-center gap-2 text-gray-500 text-sm mx-auto hover:text-gray-700"
                 >
                   {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
                   {showPin ? 'Hide PIN' : 'Show PIN'}
                 </button>
 
-                <Button 
+                <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                  disabled={isLoading || pin.some(digit => !digit)}
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
                 >
                   {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <>
-                      <Check size={18} className="mr-2" />
-                      {isSignUpFlow ? 'Complete Setup' : 'Login'}
-                    </>
+                    'Sign In'
                   )}
                 </Button>
               </form>
             </>
           )}
         </div>
-
-        {/* Trust Badges */}
-
       </div>
     </div>
   );

@@ -18,6 +18,9 @@ import {
   ExternalLink,
   KeyRound,
   Fingerprint,
+  FileText,
+  Calendar,
+  Download,
   ShieldCheck,
   X,
   ArrowRight,
@@ -75,6 +78,13 @@ export function Settings() {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Statement request modal state
+  const [showStatementModal, setShowStatementModal] = useState(false);
+  const [statementDuration, setStatementDuration] = useState<'7days' | '30days' | '3months' | '6months' | '1year' | 'custom'>('30days');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [statementEmail, setStatementEmail] = useState(profileData.email);
 
   // Change PIN flow handlers
   const handleChangePinSubmitBvn = async () => {
@@ -142,6 +152,31 @@ export function Settings() {
     setConfirmPin('');
   };
 
+  // Statement request handler
+  const handleRequestStatement = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsLoading(false);
+    setShowStatementModal(false);
+    toast.success('Statement requested! You will receive it via email shortly.');
+    // Reset form
+    setStatementDuration('30days');
+    setCustomStartDate('');
+    setCustomEndDate('');
+  };
+
+  const getDurationLabel = () => {
+    switch (statementDuration) {
+      case '7days': return 'Last 7 days';
+      case '30days': return 'Last 30 days';
+      case '3months': return 'Last 3 months';
+      case '6months': return 'Last 6 months';
+      case '1year': return 'Last 1 year';
+      case 'custom': return 'Custom range';
+      default: return 'Last 30 days';
+    }
+  };
+
   const renderProfileSettings = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -189,6 +224,26 @@ export function Settings() {
             onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
             className="focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
           />
+        </div>
+      </div>
+
+      {/* Account Statement Section */}
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <FileText size={20} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">Account Statement</h3>
+            <p className="text-gray-500 text-sm mt-0.5">Download your transaction history</p>
+            <button
+              onClick={() => setShowStatementModal(true)}
+              className="mt-3 text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1"
+            >
+              Request Statement
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -380,7 +435,7 @@ export function Settings() {
       <div className="space-y-3">
         {/* Email Support */}
         <a 
-          href="mailto:support@bridgecard.com"
+          href="mailto:support@usevelcro.com"
           className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-soft hover:bg-blue-50/50 transition-all"
         >
           <div className="flex items-center gap-3">
@@ -389,7 +444,7 @@ export function Settings() {
             </div>
             <div>
               <p className="font-semibold text-gray-900">Email Support</p>
-              <p className="text-gray-500 text-sm">support@bridgecard.com</p>
+              <p className="text-gray-500 text-sm">support@usevelcro.com</p>
               <p className="text-xs text-gray-400 mt-1">Response within 24 hours</p>
             </div>
           </div>
@@ -753,6 +808,143 @@ export function Settings() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Statement Request Modal */}
+      {showStatementModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowStatementModal(false)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <FileText size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-display font-bold text-gray-900">Request Statement</h2>
+                    <p className="text-sm text-gray-500">Download your account history</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStatementModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Duration Selection */}
+              <div>
+                <Label className="text-sm text-gray-600 mb-3 block">Select Duration</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: '7days', label: 'Last 7 days' },
+                    { id: '30days', label: 'Last 30 days' },
+                    { id: '3months', label: 'Last 3 months' },
+                    { id: '6months', label: 'Last 6 months' },
+                    { id: '1year', label: 'Last 1 year' },
+                    { id: 'custom', label: 'Custom range' },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setStatementDuration(option.id as any)}
+                      className={`p-3 rounded-xl border-2 text-left transition-all ${
+                        statementDuration === option.id
+                          ? 'border-velcro-green bg-velcro-green/5'
+                          : 'border-gray-100 hover:border-gray-200'
+                      }`}
+                    >
+                      <span className={`text-sm font-medium ${
+                        statementDuration === option.id ? 'text-gray-900' : 'text-gray-600'
+                      }`}>
+                        {option.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Date Range */}
+              {statementDuration === 'custom' && (
+                <div className="space-y-3">
+                  <Label className="text-sm text-gray-600">Custom Date Range</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Start Date</label>
+                      <Input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">End Date</label>
+                      <Input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Email Input */}
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Send To</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Input
+                    type="email"
+                    value={statementEmail}
+                    onChange={(e) => setStatementEmail(e.target.value)}
+                    className="pl-11 rounded-xl"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Your statement will be sent to this email address as a PDF attachment.
+                </p>
+              </div>
+
+              {/* Info Box */}
+              <div className="p-3 bg-amber-50 rounded-xl flex items-start gap-2">
+                <Calendar size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-700">
+                  Statements are typically processed within 5 minutes. Large date ranges may take longer.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-gray-100">
+              <Button
+                onClick={handleRequestStatement}
+                disabled={isLoading || !statementEmail || (statementDuration === 'custom' && (!customStartDate || !customEndDate))}
+                className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Download size={18} className="mr-2" />
+                    Request Statement
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}

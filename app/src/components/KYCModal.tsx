@@ -446,48 +446,57 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
 
   // Render Step 1: Select Type (Individual vs Business)
   const renderSelectType = () => (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="text-center">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-velcro-green/20">
-          <CheckCircle size={28} className="text-velcro-green" />
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="text-center pb-2">
+        <div className="w-16 h-16 bg-gradient-to-br from-velcro-green/20 to-velcro-green/5 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-4 ring-velcro-green/10">
+          <Shield size={32} className="text-velcro-green" />
         </div>
-        <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900 mb-1">Complete Your Verification</h2>
-        <p className="text-gray-500 text-sm">Choose how you want to use Velcro</p>
+        <h2 className="text-xl font-display font-bold text-gray-900">Verify Your Account</h2>
+        <p className="text-gray-500 text-sm mt-1">Unlock higher limits and full features</p>
       </div>
 
+      {/* Options */}
       <div className="space-y-3">
         {/* Individual Option */}
         <button
           onClick={() => handleSelectType('individual')}
-          className="w-full p-4 sm:p-5 bg-white border-2 border-gray-100 hover:border-blue-300 rounded-2xl hover:shadow-soft transition-all text-left group"
+          className="w-full p-5 bg-white border border-gray-200 hover:border-blue-400 rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
         >
-          <div className="flex items-start gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/25">
-              <UserCircle size={22} className="text-white" />
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex items-center gap-4 relative">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
+              <User size={28} className="text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 text-base sm:text-lg">Individual</h3>
-                <ChevronRight size={18} className="text-gray-400" />
+                <h3 className="font-bold text-gray-900 text-lg">Individual</h3>
+                <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                For freelancers, starters, and personal use
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-lg">Tier 1</span>
-                <span className="text-gray-300">→</span>
-                <span className="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-lg">Tier 2</span>
+              <p className="text-sm text-gray-500 mt-0.5">Personal account for individuals</p>
+            </div>
+          </div>
+          
+          {/* Features */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Tier 1</span>
+              <span className="text-gray-300">→</span>
+              <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Tier 2</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-xs text-gray-600">Up to ₦10M/day</span>
               </div>
-              <ul className="mt-2 space-y-0.5">
-                <li className="flex items-center gap-1.5 text-gray-500 text-xs">
-                  <Check size={10} className="text-velcro-green" />
-                  Up to ₦10M daily limit
-                </li>
-                <li className="flex items-center gap-1.5 text-gray-500 text-xs">
-                  <Check size={10} className="text-velcro-green" />
-                  Personal BVN required
-                </li>
-              </ul>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-xs text-gray-600">BVN Required</span>
+              </div>
             </div>
           </div>
         </button>
@@ -495,47 +504,56 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
         {/* Business Option */}
         <button
           onClick={() => handleSelectType('business')}
-          className="w-full p-4 sm:p-5 bg-white border-2 border-gray-100 hover:border-velcro-navy rounded-2xl hover:shadow-soft transition-all text-left group"
+          className="w-full p-5 bg-white border border-gray-200 hover:border-velcro-navy rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
         >
-          <div className="flex items-start gap-3 sm:gap-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-velcro-navy to-blue-800 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-blue-900/25">
-              <Building size={22} className="text-white" />
+          <div className="absolute top-0 right-0 w-24 h-24 bg-velcro-navy/5 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex items-center gap-4 relative">
+            <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy to-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-velcro-navy/30 group-hover:scale-105 transition-transform">
+              <Building2 size={28} className="text-white" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 text-base sm:text-lg">Business</h3>
-                <ChevronRight size={18} className="text-gray-400" />
+                <h3 className="font-bold text-gray-900 text-lg">Business</h3>
+                <ChevronRight size={20} className="text-gray-400 group-hover:text-velcro-navy transition-colors" />
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                For registered business names, companies, NGOs
-              </p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="px-2 py-0.5 bg-velcro-navy/10 text-velcro-navy text-xs rounded-lg font-medium">Tier 3 Direct</span>
+              <p className="text-sm text-gray-500 mt-0.5">For companies & registered businesses</p>
+            </div>
+          </div>
+          
+          {/* Features */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-velcro-navy/10 text-velcro-navy text-xs font-semibold rounded-full">Tier 3 Direct</span>
+              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">HIGH LIMIT</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-xs text-gray-600">Up to ₦100M/day</span>
               </div>
-              <ul className="mt-2 space-y-0.5">
-                <li className="flex items-center gap-1.5 text-gray-500 text-xs">
-                  <Check size={10} className="text-velcro-green" />
-                  Up to ₦100M daily limit
-                </li>
-                <li className="flex items-center gap-1.5 text-gray-500 text-xs">
-                  <Check size={10} className="text-velcro-green" />
-                  CAC Registration required
-                </li>
-              </ul>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check size={12} className="text-green-600" />
+                </div>
+                <span className="text-xs text-gray-600">CAC Required</span>
+              </div>
             </div>
           </div>
         </button>
       </div>
 
-      <div className="p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-100">
-        <div className="flex items-start gap-2 sm:gap-3">
-          <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Info size={14} className="text-blue-600" />
+      {/* Info Box */}
+      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Info size={16} className="text-gray-500" />
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-blue-800 font-medium">Already have Tier 0?</p>
-            <p className="text-xs text-blue-600 mt-0.5">
-              You can still use basic crypto features up to $100 without completing full KYC.
+            <p className="text-sm text-gray-700 font-medium">Start with basic access</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Use crypto features up to $100 without full verification. Upgrade anytime!
             </p>
           </div>
         </div>

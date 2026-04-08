@@ -494,7 +494,7 @@ export function Cards() {
   const handleEmailSupport = (tx: CardTransaction) => {
     const subject = `Support Request - Card Transaction #${tx.id.toString().padStart(8, '0')}`;
     const body = `Hello Support,%0D%0A%0D%AI need help with the following card transaction:%0D%0A%0D%0A- Transaction ID: ${tx.id.toString().padStart(8, '0')}%0D%0A- Merchant: ${tx.merchant}%0D%0A- Amount: $${tx.amount.toFixed(2)}%0D%0A- Date: ${tx.date}%0D%0A- Status: ${tx.status}%0D%0A- Auth Code: ${tx.authCode}%0D%0A%0D%0APlease describe your issue here...`;
-    window.open(`mailto:support@bridgecard.com?subject=${encodeURIComponent(subject)}&body=${body}`);
+    window.open(`mailto:support@usevelcro.com?subject=${encodeURIComponent(subject)}&body=${body}`);
     toast.success('Opening email client...');
   };
 
@@ -1727,7 +1727,7 @@ export function Cards() {
                     <Mail size={18} className="mr-3 text-blue-600" />
                     <div className="text-left flex-1">
                       <span className="text-sm font-medium text-gray-900">Email Support</span>
-                      <p className="text-xs text-gray-500">support@bridgecard.com</p>
+                      <p className="text-xs text-gray-500">support@usevelcro.com</p>
                     </div>
                     <ExternalLink size={14} className="text-gray-400" />
                   </Button>
