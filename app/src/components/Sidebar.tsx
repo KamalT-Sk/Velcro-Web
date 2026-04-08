@@ -8,6 +8,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Menu,
+  X,
   Shield,
   CreditCard,
   AtSign,
@@ -49,7 +51,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white shadow-lg rounded-xl border border-gray-100"
       >
-        {isMobileOpen ? <ChevronLeft size={20} className="text-gray-600" /> : <ChevronRight size={20} className="text-gray-600" />}
+        {isMobileOpen ? <X size={20} className="text-gray-600" /> : <Menu size={20} className="text-gray-600" />}
       </button>
 
       {/* Sidebar */}
@@ -103,7 +105,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
               </div>
               <div className="text-left">
                 <span className="text-sm font-medium">
-                  {whatsAppNumber ? 'WhatsApp Active' : 'Sync WhatsApp'}
+                  {whatsAppNumber ? 'WhatsApp Connected' : 'Sync WhatsApp'}
                 </span>
                 {whatsAppNumber && (
                   <p className="text-xs text-green-600">

@@ -22,7 +22,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,29 @@ const BLOCKCHAINS = [
   { name: 'Arbitrum', logo: '/logos/arbitrum.png', tokens: ['USDC', 'USDT'] },
   { name: 'Base', logo: '/logos/base.png', tokens: ['USDC', 'USDT'] },
   { name: 'Tron', logo: '/logos/tron.png', tokens: ['USDT'] },
+];
+
+const NIGERIAN_BANKS = [
+  { code: '044', name: 'Access Bank' },
+  { code: '023', name: 'Citibank' },
+  { code: '050', name: 'Ecobank' },
+  { code: '011', name: 'First Bank' },
+  { code: '214', name: 'First City Monument Bank' },
+  { code: '070', name: 'Fidelity Bank' },
+  { code: '058', name: 'Guaranty Trust Bank' },
+  { code: '030', name: 'Heritage Bank' },
+  { code: '301', name: 'Jaiz Bank' },
+  { code: '082', name: 'Keystone Bank' },
+  { code: '076', name: 'Polaris Bank' },
+  { code: '221', name: 'Stanbic IBTC' },
+  { code: '068', name: 'Standard Chartered' },
+  { code: '232', name: 'Sterling Bank' },
+  { code: '100', name: 'Suntrust Bank' },
+  { code: '032', name: 'Union Bank' },
+  { code: '033', name: 'United Bank for Africa' },
+  { code: '215', name: 'Unity Bank' },
+  { code: '035', name: 'Wema Bank' },
+  { code: '057', name: 'Zenith Bank' },
 ];
 
 interface Transaction {
@@ -129,6 +153,23 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   // BUY state
   const [buyMode, setBuyMode] = useState<'main' | 'external'>('main');
   const [buyAmount, setBuyAmount] = useState('');
+  const [buyInputCurrency, setBuyInputCurrency] = useState<'usd' | 'ngn'>('usd');
+  
+  // Display amount in selected currency
+  const displayBuyAmount = buyInputCurrency === 'usd' 
+    ? buyAmount 
+    : (buyAmount ? (Number(buyAmount) * buyRate).toFixed(2) : '');
+  
+  const handleBuyAmountChange = (value: string) => {
+    if (buyInputCurrency === 'usd') {
+      setBuyAmount(value);
+    } else {
+      // Convert NGN input to USD
+      const ngnAmount = Number(value);
+      setBuyAmount(ngnAmount > 0 ? (ngnAmount / buyRate).toFixed(2) : '');
+    }
+    setBuyOneTimeAddress(null);
+  };
   const [buyExternalToken, setBuyExternalToken] = useState('USDC');
   const [buyExternalChain, setBuyExternalChain] = useState('Ethereum');
   const [buyExternalAddress, setBuyExternalAddress] = useState('');
@@ -146,7 +187,8 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   const [sellExternalChain, setSellExternalChain] = useState('Ethereum');
   const [showSellTokenSelect, setShowSellTokenSelect] = useState(false);
   const [showSellChainSelect, setShowSellChainSelect] = useState(false);
-  const [externalBankName, setExternalBankName] = useState('');
+  const [externalBankCode, setExternalBankCode] = useState('');
+  const [showBankSelect, setShowBankSelect] = useState(false);
   const [externalAccountNumber, setExternalAccountNumber] = useState('');
   const [externalAccountName, setExternalAccountName] = useState('');
   const [sellOneTimeAddress, setSellOneTimeAddress] = useState<OneTimeAddress | null>(null);
@@ -158,6 +200,17 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
   const [sendAddress, setSendAddress] = useState('');
   
   const remainingLimit = userKYC?.cryptoLimit ? userKYC.cryptoLimit - solanaBalance : 100 - solanaBalance;
+
+  // Auto-verify bank account when 10 digits entered
+  useEffect(() => {
+    if (sellNGNDestination === 'external' && externalAccountNumber.length === 10 && externalBankCode && !externalAccountName) {
+      // Simulate bank verification
+      const timer = setTimeout(() => {
+        setExternalAccountName('SHEHU KAMAL');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [externalAccountNumber, externalBankCode, sellNGNDestination, externalAccountName]);
 
   useEffect(() => {
     let interval: TimerType;
@@ -253,7 +306,7 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
       return;
     }
     if (sellNGNDestination === 'external') {
-      if (!externalBankName || !externalAccountNumber || !externalAccountName) {
+      if (!externalBankCode || !externalAccountNumber || !externalAccountName) {
         toast.error('Please fill in all bank details');
         return;
       }
@@ -544,6 +597,68 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                 <span className="text-sm font-medium">${tx.fee.toFixed(2)}</span>
               </div>
             </div>
+
+            {/* Support Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Need Help?</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Have questions or issues with this transaction? Our support team is here to help.
+              </p>
+              <div className="space-y-2">
+                {/* Email Support */}
+                <button
+                  onClick={() => {
+                    const subject = `Crypto Transaction Support - ${tx.reference}`;
+                    const body = `Hello Velcro Support,
+
+I need assistance with the following crypto transaction:
+
+Transaction Details:
+- Reference: ${tx.reference}
+- Type: ${tx.type.toUpperCase()}
+- Token: ${tx.token}
+- Amount: ${tx.amount} ${tx.token}
+- Status: ${tx.status}
+- Date: ${formatDate(tx.timestamp)}
+
+Please assist with this transaction.
+
+Thank you.`;
+                    window.open(`mailto:support@usevelcro.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+                  }}
+                  className="w-full flex items-center px-4 py-3 border border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl transition-colors"
+                >
+                  <Mail size={18} className="text-blue-600 mr-3" />
+                  <div className="text-left flex-1">
+                    <span className="text-sm font-medium text-gray-900">Email Support</span>
+                    <p className="text-xs text-gray-500">support@usevelcro.com</p>
+                  </div>
+                  <ExternalLink size={14} className="text-gray-400" />
+                </button>
+
+                {/* WhatsApp Support */}
+                <button
+                  onClick={() => {
+                    const message = `Hello Velcro Support, I need help with my crypto transaction (Ref: ${tx.reference}). Amount: ${tx.amount} ${tx.token}, Type: ${tx.type.toUpperCase()}, Status: ${tx.status}.`;
+                    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+                  }}
+                  className="w-full flex items-center px-4 py-3 border border-green-200 hover:bg-green-50 hover:border-green-300 rounded-xl transition-colors"
+                >
+                  <img src="/images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                  <div className="text-left flex-1">
+                    <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
+                    <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                  </div>
+                  <ExternalLink size={14} className="text-gray-400" />
+                </button>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 rounded-xl">
+                <p className="text-xs text-blue-700 text-center">
+                  Include your Transaction Reference when contacting support for faster assistance
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -751,22 +866,73 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                 <Wallet size={20} className={buyMode === 'external' ? 'text-purple-600' : 'text-gray-400'} />
                 <span className={`font-medium ${buyMode === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>To External Wallet</span>
               </div>
-              <p className="text-xs text-gray-500">Any chain, any wallet</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-500 mr-1">Any chain</p>
+                <div className="flex -space-x-1">
+                  {BLOCKCHAINS.slice(0, 4).map((chain) => (
+                    <img key={chain.name} src={chain.logo} alt={chain.name} className="w-4 h-4 rounded-full border border-white" />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 ml-1">+ more</p>
+              </div>
             </button>
           </div>
 
           <div className="mb-6">
-            <Label className="text-sm text-gray-600 mb-2 block">Amount (USD)</Label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">$</span>
-              <Input type="number" placeholder="0.00" value={buyAmount}
-                onChange={(e) => { setBuyAmount(e.target.value); setBuyOneTimeAddress(null); }}
-                className="pl-10 py-6 text-lg rounded-xl" />
+            {/* Currency Toggle */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <button
+                onClick={() => setBuyInputCurrency('usd')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  buyInputCurrency === 'usd' 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span>$</span>
+                <span>USD</span>
+              </button>
+              <button
+                onClick={() => setBuyInputCurrency('ngn')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  buyInputCurrency === 'ngn' 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span>₦</span>
+                <span>NGN</span>
+              </button>
             </div>
+
+            {/* Amount Input */}
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
+                {buyInputCurrency === 'usd' ? '$' : '₦'}
+              </span>
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={displayBuyAmount}
+                onChange={(e) => handleBuyAmountChange(e.target.value)}
+                className="pl-10 py-5 text-xl font-semibold rounded-xl" 
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm uppercase">
+                {buyInputCurrency}
+              </span>
+            </div>
+
+            {/* Conversion Info */}
             {buyAmount && (
-              <div className="mt-2 space-y-1">
-                <p className="text-purple-600 font-medium text-sm">≈ ₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN</p>
-                <p className="text-xs text-gray-500">Fee (0.5%): ${calculateFee(Number(buyAmount)).toFixed(2)}</p>
+              <div className="mt-3 p-3 bg-gray-50 rounded-xl text-center">
+                <p className="text-sm text-gray-500">
+                  {buyInputCurrency === 'usd' ? (
+                    <>≈ ₦{(Number(buyAmount) * buyRate).toLocaleString()} NGN</>
+                  ) : (
+                    <>≈ ${(Number(buyAmount) / buyRate).toFixed(2)} USD</>
+                  )}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Rate: $1 = ₦{buyRate.toLocaleString()}</p>
               </div>
             )}
           </div>
@@ -830,7 +996,7 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                 <Button onClick={generateBuyOneTimeAddress} disabled={isGeneratingBuyAddress || !buyAmount || !buyExternalAddress}
                   className="w-full bg-purple-600 text-white h-12 rounded-xl">
                   {isGeneratingBuyAddress ? <RefreshCw size={18} className="animate-spin mr-2" /> : <Wallet size={18} className="mr-2" />}
-                  Generate One-Time Address
+                  Buy to External Address
                 </Button>
               )}
 
@@ -848,6 +1014,12 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                     </button>
                   </div>
                   <p className="text-xs text-amber-600 mt-2">Ref: {buyOneTimeAddress.reference}</p>
+                  <div className="mt-3 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
+                    <p className="text-xs text-amber-800 flex items-start gap-2">
+                      <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                      <span>After sending, check your <strong>History</strong> tab for transaction status. Funds will be credited once confirmed on the blockchain.</span>
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -883,7 +1055,15 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                 <Wallet size={20} className={sellMode === 'external' ? 'text-purple-600' : 'text-gray-400'} />
                 <span className={`font-medium ${sellMode === 'external' ? 'text-gray-900' : 'text-gray-600'}`}>From External</span>
               </div>
-              <p className="text-xs text-gray-500">Send from any blockchain</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-500 mr-1">Send from external wallet</p>
+                <div className="flex -space-x-1">
+                  {BLOCKCHAINS.slice(0, 4).map((chain) => (
+                    <img key={chain.name} src={chain.logo} alt={chain.name} className="w-4 h-4 rounded-full border border-white" />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 ml-1">+ more</p>
+              </div>
             </button>
           </div>
 
@@ -903,6 +1083,57 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
             )}
           </div>
 
+          {sellMode === 'external' && (
+            <div className="space-y-4 mb-6">
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Select Token</Label>
+                <button onClick={() => setShowSellTokenSelect(!showSellTokenSelect)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white">
+                  <div className="flex items-center gap-3">
+                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === sellExternalToken)?.logo} alt={sellExternalToken} className="w-8 h-8" />
+                    <span className="font-medium">{sellExternalToken}</span>
+                  </div>
+                  <ChevronDown size={18} className="text-gray-400" />
+                </button>
+                {showSellTokenSelect && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                    {EXTERNAL_TOKENS.map((token) => (
+                      <button key={token.symbol} onClick={() => { setSellExternalToken(token.symbol); setShowSellTokenSelect(false); }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                        <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
+                        <span className="font-medium">{token.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Select Blockchain</Label>
+                <button onClick={() => setShowSellChainSelect(!showSellChainSelect)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white">
+                  <div className="flex items-center gap-3">
+                    <img src={BLOCKCHAINS.find(c => c.name === sellExternalChain)?.logo} alt={sellExternalChain} className="w-6 h-6" />
+                    <span className="font-medium">{sellExternalChain}</span>
+                  </div>
+                  <ChevronDown size={18} className="text-gray-400" />
+                </button>
+                {showSellChainSelect && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                    {BLOCKCHAINS.filter(c => c.tokens.includes(sellExternalToken)).map((chain) => (
+                      <button key={chain.name} onClick={() => { setSellExternalChain(chain.name); setShowSellChainSelect(false); }}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
+                        <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
+                        <span className="font-medium">{chain.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* NGN Destination */}
           <div className="mb-6">
             <Label className="text-sm text-gray-600 mb-2 block">NGN Destination</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -921,11 +1152,94 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
             </div>
           </div>
 
+          {/* Bank Details - Last on the page (only for external bank) */}
           {sellNGNDestination === 'external' && (
-            <div className="space-y-3 p-4 bg-gray-50 rounded-xl mb-6">
-              <Input type="text" placeholder="Bank Name" value={externalBankName} onChange={(e) => setExternalBankName(e.target.value)} className="py-3 rounded-xl" />
-              <Input type="text" placeholder="Account Number" value={externalAccountNumber} onChange={(e) => setExternalAccountNumber(e.target.value)} className="py-3 rounded-xl" />
-              <Input type="text" placeholder="Account Name" value={externalAccountName} onChange={(e) => setExternalAccountName(e.target.value)} className="py-3 rounded-xl" />
+            <div className="space-y-4 p-4 bg-gray-50 rounded-xl mb-6">
+              {/* Bank Name */}
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Bank Name</Label>
+                <button 
+                  onClick={() => setShowBankSelect(!showBankSelect)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white"
+                >
+                  <span className={externalBankCode ? 'text-gray-900' : 'text-gray-400'}>
+                    {externalBankCode 
+                      ? NIGERIAN_BANKS.find(b => b.code === externalBankCode)?.name 
+                      : 'Select bank'}
+                  </span>
+                  <ChevronDown size={18} className="text-gray-400" />
+                </button>
+                {showBankSelect && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-auto">
+                    {NIGERIAN_BANKS.map((bank) => (
+                      <button 
+                        key={bank.code} 
+                        onClick={() => { 
+                          setExternalBankCode(bank.code); 
+                          setShowBankSelect(false);
+                          setExternalAccountName('');
+                        }}
+                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 text-left"
+                      >
+                        <span className="font-medium">{bank.name}</span>
+                        {externalBankCode === bank.code && <Check size={16} className="text-green-600" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Account Number */}
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Account Number</Label>
+                <div className="relative">
+                  <Input 
+                    type="text" 
+                    placeholder="Enter 10-digit account number" 
+                    value={externalAccountNumber} 
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setExternalAccountNumber(val);
+                      if (val.length !== 10) {
+                        setExternalAccountName('');
+                      }
+                    }}
+                    maxLength={10}
+                    className="py-4 rounded-xl focus:border-velcro-green focus:ring-velcro-green/20 pr-10" 
+                  />
+                  {externalAccountNumber.length === 10 && externalAccountName && (
+                    <Check size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{externalAccountNumber.length}/10 digits</p>
+              </div>
+              
+              {/* Account Name - Auto-populated */}
+              <div>
+                <Label className="text-sm text-gray-600 mb-2 block">Account Name</Label>
+                <div className="relative">
+                  <Input 
+                    type="text" 
+                    placeholder={externalAccountNumber.length === 10 ? 'Account name will appear here' : 'Enter account number first'}
+                    value={externalAccountName} 
+                    disabled
+                    className={`py-4 rounded-xl ${
+                      externalAccountName 
+                        ? 'bg-green-50 border-green-200 text-green-800' 
+                        : 'bg-gray-50 text-gray-500'
+                    }`} 
+                  />
+                  {externalAccountName && (
+                    <Check size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500" />
+                  )}
+                </div>
+                {externalAccountName && (
+                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                    <Check size={12} />
+                    Account verified
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -951,6 +1265,12 @@ export function CryptoHub({ userKYC, onOpenKYC }: CryptoHubProps) {
                 </button>
               </div>
               <p className="text-xs text-amber-600">Network: {sellExternalChain}</p>
+              <div className="mt-3 p-3 bg-amber-100/50 rounded-lg border border-amber-200">
+                <p className="text-xs text-amber-800 flex items-start gap-2">
+                  <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                  <span>After sending, check your <strong>History</strong> tab for transaction status. NGN will be credited once confirmed on the blockchain.</span>
+                </p>
+              </div>
             </div>
           )}
 

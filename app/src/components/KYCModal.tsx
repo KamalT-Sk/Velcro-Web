@@ -99,7 +99,7 @@ const tiers: Tier[] = [
     cryptoLimit: 100000,
     requirements: ['Business Registration (CAC)', 'Business Address', 'Director/Owner Details', 'Business Documents'],
     color: 'bg-velcro-navy',
-    description: 'For registered companies and NGOs',
+    description: 'For registered business names, companies and NGOs',
   },
 ];
 
@@ -506,7 +506,7 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
                 <ChevronRight size={18} className="text-gray-400" />
               </div>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                For registered companies, NGOs
+                For registered business names, companies, NGOs
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <span className="px-2 py-0.5 bg-velcro-navy/10 text-velcro-navy text-xs rounded-lg font-medium">Tier 3 Direct</span>

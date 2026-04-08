@@ -24,7 +24,10 @@ import {
   Gamepad2,
   FileText,
   ArrowRight,
-  Wallet
+  Wallet,
+  History,
+  RotateCcw,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -180,6 +183,13 @@ export function Utilities() {
   const [returnDate, setReturnDate] = useState('');
   const [passengers, setPassengers] = useState(1);
   const [tripType, setTripType] = useState<'one-way' | 'round-trip'>('one-way');
+  
+  // History and modal state
+  const [activeTab, setActiveTab] = useState<'pay' | 'history'>('pay');
+  const [transactions, setTransactions] = useState<UtilityTransaction[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState(['', '', '', '']);
 
   const paymentSources: PaymentSource[] = [
     { type: 'ngn', balance: 2450000.50, symbol: '₦' },

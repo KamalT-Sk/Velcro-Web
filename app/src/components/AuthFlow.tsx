@@ -38,11 +38,12 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     email: '',
     phone: '',
   });
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   const [pin, setPin] = useState(['', '', '', '']);
   const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
   const [showPin, setShowPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUpFlow, setIsSignUpFlow] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +54,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
+    setIsSignUpFlow(true);
     setAuthState('otp');
     toast.success('OTP sent to your email!');
   };
@@ -66,6 +68,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
+    setIsSignUpFlow(false);
     setAuthState('otp');
     toast.success('OTP sent to your email!');
   };
@@ -79,8 +82,14 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
+    
+    // Both signup and login go to PIN screen
     setAuthState('pin');
-    toast.success('OTP verified! Set your PIN');
+    if (isSignUpFlow) {
+      toast.success('OTP verified! Set your PIN');
+    } else {
+      toast.success('OTP verified! Enter your PIN');
+    }
   };
 
   const handlePinSet = async (e: React.FormEvent) => {
@@ -89,19 +98,24 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
       toast.error('Please enter complete PIN');
       return;
     }
-    if (confirmPin.some(digit => !digit)) {
-      toast.error('Please confirm your PIN');
-      return;
+    
+    // Only check confirm PIN during signup
+    if (isSignUpFlow) {
+      if (confirmPin.some(digit => !digit)) {
+        toast.error('Please confirm your PIN');
+        return;
+      }
+      if (pin.join('') !== confirmPin.join('')) {
+        toast.error('PINs do not match');
+        return;
+      }
     }
-    if (pin.join('') !== confirmPin.join('')) {
-      toast.error('PINs do not match');
-      return;
-    }
+    
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
     onComplete();
-    toast.success('Welcome to Velcro!');
+    toast.success(isSignUpFlow ? 'Welcome to Velcro!' : 'Welcome back!');
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -109,7 +123,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    if (value && index < 5) {
+    if (value && index < 4) {
       document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
@@ -323,7 +337,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                   <KeyRound className="text-amber-600" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter OTP</h2>
-                <p className="text-gray-500 text-sm">We've sent a 6-digit code to {formData.email || 'your email'}</p>
+                <p className="text-gray-500 text-sm">We've sent a 5-digit code to {formData.email || 'your email'}</p>
               </div>
 
               <form onSubmit={handleOtpVerify} className="space-y-6">
@@ -372,14 +386,20 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-purple-200">
                   <KeyRound className="text-purple-600" size={28} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create PIN</h2>
-                <p className="text-gray-500 text-sm">Set a 4-digit PIN for secure transactions</p>
+                <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">
+                  {isSignUpFlow ? 'Create Your PIN' : 'Enter Your PIN'}
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  {isSignUpFlow ? 'Set a 4-digit PIN for secure transactions' : 'Enter your 4-digit PIN to continue'}
+                </p>
               </div>
 
               <form onSubmit={handlePinSet} className="space-y-6">
                 {/* PIN Input */}
                 <div>
-                  <Label className="text-sm text-gray-600 mb-3 block">Enter PIN</Label>
+                  <Label className="text-sm text-gray-600 mb-3 block">
+                    {isSignUpFlow ? 'Enter PIN' : 'PIN'}
+                  </Label>
                   <div className="flex justify-center gap-2 sm:gap-3">
                     {pin.map((digit, index) => (
                       <input
@@ -395,23 +415,25 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                   </div>
                 </div>
 
-                {/* Confirm PIN Input */}
-                <div>
-                  <Label className="text-sm text-gray-600 mb-3 block">Confirm PIN</Label>
-                  <div className="flex justify-center gap-2 sm:gap-3">
-                    {confirmPin.map((digit, index) => (
-                      <input
-                        key={index}
-                        id={`confirm-pin-${index}`}
-                        type={showPin ? 'text' : 'password'}
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handlePinChange(index, e.target.value, 'confirm')}
-                        className="w-11 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
-                      />
-                    ))}
+                {/* Confirm PIN Input - Only for Signup */}
+                {isSignUpFlow && (
+                  <div>
+                    <Label className="text-sm text-gray-600 mb-3 block">Confirm PIN</Label>
+                    <div className="flex justify-center gap-2 sm:gap-3">
+                      {confirmPin.map((digit, index) => (
+                        <input
+                          key={index}
+                          id={`confirm-pin-${index}`}
+                          type={showPin ? 'text' : 'password'}
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handlePinChange(index, e.target.value, 'confirm')}
+                          className="w-11 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none transition-all"
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Show/Hide PIN */}
                 <button
@@ -433,7 +455,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                   ) : (
                     <>
                       <Check size={18} className="mr-2" />
-                      Complete Setup
+                      {isSignUpFlow ? 'Complete Setup' : 'Login'}
                     </>
                   )}
                 </Button>

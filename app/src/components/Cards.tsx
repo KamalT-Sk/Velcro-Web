@@ -18,7 +18,6 @@ import {
   ArrowRight,
   HeadphonesIcon,
   Mail,
-  MessageCircle,
   Calendar,
   Clock,
   Hash,
@@ -158,10 +157,6 @@ export function Cards() {
     const message = `Hello Velcro Support, I need help with Card Transaction #${tx.id.toString().padStart(8, '0')} - $${tx.amount.toFixed(2)} at ${tx.merchant} on ${tx.date}`;
     window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
     toast.success('Opening WhatsApp...');
-  };
-
-  const handleReportDispute = (tx: CardTransaction) => {
-    toast.info('Dispute feature coming soon!');
   };
 
   return (
@@ -796,19 +791,6 @@ export function Cards() {
                       <p className="text-xs text-gray-500">+234 800 123 4567</p>
                     </div>
                     <ExternalLink size={14} className="text-gray-400" />
-                  </Button>
-
-                  {/* Report Dispute */}
-                  <Button
-                    variant="outline"
-                    onClick={() => handleReportDispute(selectedTransaction)}
-                    className="w-full border-red-200 hover:bg-red-50 hover:border-red-300 h-12 rounded-xl justify-start"
-                  >
-                    <MessageCircle size={18} className="mr-3 text-red-600" />
-                    <div className="text-left flex-1">
-                      <span className="text-sm font-medium text-gray-900">Report Dispute</span>
-                      <p className="text-xs text-gray-500">Problem with this transaction?</p>
-                    </div>
                   </Button>
                 </div>
 

@@ -84,9 +84,6 @@ function App() {
         <div className="text-center">
           <div className="relative mb-6">
             <div className="w-16 h-16 border-4 border-gray-200 border-t-velcro-green rounded-full animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-velcro-navy">V</span>
-            </div>
           </div>
           <p className="text-gray-500 text-sm">Loading Velcro...</p>
         </div>

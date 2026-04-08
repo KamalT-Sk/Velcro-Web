@@ -1,4 +1,4 @@
-import { X, Copy, MessageCircle, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign, HeadphonesIcon, Mail, ExternalLink, FileQuestion, Clock, Calendar, Hash } from 'lucide-react';
+import { X, Copy, ArrowDownLeft, ArrowUpRight, Repeat, Landmark, Send, CircleDollarSign, HeadphonesIcon, Mail, ExternalLink, Clock, Calendar, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -113,9 +113,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
     toast.success('Opening WhatsApp...');
   };
 
-  const handleReportIssue = () => {
-    toast.info('Report feature coming soon!');
-  };
 
   // Parse date to show more details
   const txDate = new Date(transaction.date);
@@ -266,24 +263,10 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
                 </div>
                 <ExternalLink size={14} className="text-gray-400" />
               </Button>
-
-              {/* Report Issue */}
-              <Button
-                variant="outline"
-                onClick={handleReportIssue}
-                className="w-full border-red-200 hover:bg-red-50 hover:border-red-300 h-12 rounded-xl justify-start"
-              >
-                <FileQuestion size={18} className="mr-3 text-red-600" />
-                <div className="text-left flex-1">
-                  <span className="text-sm font-medium text-gray-900">Report an Issue</span>
-                  <p className="text-xs text-gray-500">Something wrong with this transaction?</p>
-                </div>
-              </Button>
             </div>
 
             <div className="mt-4 p-3 bg-blue-50 rounded-xl">
               <p className="text-xs text-blue-700 text-center">
-                <MessageCircle size={12} className="inline mr-1" />
                 Include your Transaction ID when contacting support for faster assistance
               </p>
             </div>
