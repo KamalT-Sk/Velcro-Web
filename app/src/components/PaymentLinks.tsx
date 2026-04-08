@@ -369,7 +369,7 @@ export function PaymentLinks() {
   };
 
   const copyLink = (slug: string) => {
-    navigator.clipboard.writeText(`https://pay.usevelcro.com/${slug}`);
+    navigator.clipboard.writeText(`https://bridgecard.com/${slug}`);
     toast.success('Link copied to clipboard!');
   };
 
@@ -531,7 +531,7 @@ export function PaymentLinks() {
             <div>
               <p className="text-sm text-gray-500 mb-1">Payment Link</p>
               <div className="flex items-center gap-3">
-                <span className="text-gray-900 font-medium">pay.usevelcro.com/{selectedLink.slug}</span>
+                <span className="text-gray-900 font-medium">bridgecard.com/{selectedLink.slug}</span>
                 <button
                   onClick={() => copyLink(selectedLink.slug)}
                   className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
@@ -712,7 +712,7 @@ export function PaymentLinks() {
               <Label>Custom Slug <span className="text-red-500">*</span></Label>
               <div className="flex">
                 <span className="px-4 py-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-gray-500 text-sm font-medium flex items-center">
-                  pay.usevelcro.com/
+                  bridgecard.com/
                 </span>
                 <Input
                   placeholder="your-link"
@@ -1026,7 +1026,7 @@ export function PaymentLinks() {
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     <div className="flex items-center gap-1.5 text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
                       <ExternalLink size={14} />
-                      <span className="font-medium">pay.usevelcro.com/{link.slug}</span>
+                      <span className="font-medium">bridgecard.com/{link.slug}</span>
                     </div>
                     <span className="text-gray-300">|</span>
                     <span className="text-gray-600">
@@ -1141,7 +1141,7 @@ export function PaymentLinks() {
                   <Label>Custom Slug <span className="text-red-500">*</span></Label>
                   <div className="flex">
                     <span className="px-4 py-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-gray-500 text-sm font-medium flex items-center">
-                      pay.usevelcro.com/
+                      bridgecard.com/
                     </span>
                     <Input
                       placeholder="your-link"
@@ -1331,7 +1331,7 @@ export function PaymentLinks() {
               </div>
 
               <div className="mt-4 pt-4 border-t text-center">
-                <p className="text-xs text-gray-400">pay.usevelcro.com/{previewLink.slug}</p>
+                <p className="text-xs text-gray-400">bridgecard.com/{previewLink.slug}</p>
               </div>
             </div>
           </div>

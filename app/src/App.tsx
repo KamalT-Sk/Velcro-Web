@@ -87,12 +87,22 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative mb-6">
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-velcro-green rounded-full animate-spin" />
-          </div>
-          <p className="text-gray-500 text-sm">Loading Velcro...</p>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        {/* Velcro Logo - Favicon */}
+        <div className="relative mb-6">
+          <img 
+            src="./favicon.png" 
+            alt="Velcro" 
+            className="w-20 h-20 object-contain animate-pulse-soft"
+          />
+        </div>
+        
+        {/* Loading Text */}
+        <p className="text-gray-400 text-sm">Loading your experience...</p>
+        
+        {/* Progress Bar */}
+        <div className="mt-6 w-48 h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-velcro-green rounded-full animate-loading-bar" />
         </div>
       </div>
     );

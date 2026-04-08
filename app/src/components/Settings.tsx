@@ -15,10 +15,18 @@ import {
   HeadphonesIcon,
   Mail,
   MessageCircle,
-  ExternalLink
+  ExternalLink,
+  KeyRound,
+  Fingerprint,
+  ShieldCheck,
+  X,
+  ArrowRight,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
@@ -58,6 +66,81 @@ export function Settings() {
     currency: 'NGN',
     language: 'en',
   });
+
+  // Change PIN modal state
+  const [showChangePinModal, setShowChangePinModal] = useState(false);
+  const [changePinStep, setChangePinStep] = useState<'bvn' | 'otp' | 'newpin' | 'confirm'>('bvn');
+  const [bvn, setBvn] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Change PIN flow handlers
+  const handleChangePinSubmitBvn = async () => {
+    if (bvn.length !== 11) {
+      toast.error('Please enter a valid 11-digit BVN');
+      return;
+    }
+    
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsLoading(false);
+    
+    toast.success('OTP sent to your email address');
+    setChangePinStep('otp');
+  };
+  
+  const handleChangePinVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      toast.error('Please enter the 6-digit OTP');
+      return;
+    }
+    
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    
+    toast.success('OTP verified successfully');
+    setChangePinStep('newpin');
+  };
+  
+  const handleChangePinSubmitNewPin = () => {
+    if (newPin.length !== 4) {
+      toast.error('PIN must be 4 digits');
+      return;
+    }
+    
+    setChangePinStep('confirm');
+  };
+  
+  const handleChangePinComplete = async () => {
+    if (newPin !== confirmPin) {
+      toast.error('PINs do not match');
+      return;
+    }
+    
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsLoading(false);
+    
+    toast.success('Transaction PIN changed successfully!');
+    setShowChangePinModal(false);
+    setChangePinStep('bvn');
+    setBvn('');
+    setOtp('');
+    setNewPin('');
+    setConfirmPin('');
+  };
+  
+  const resetChangePinFlow = () => {
+    setShowChangePinModal(false);
+    setChangePinStep('bvn');
+    setBvn('');
+    setOtp('');
+    setNewPin('');
+    setConfirmPin('');
+  };
 
   const renderProfileSettings = () => (
     <div className="space-y-6">
@@ -159,13 +242,12 @@ export function Settings() {
 
       <div className="space-y-3">
         {[
-          { icon: Lock, title: 'Change Transaction PIN', desc: 'Update your 4-digit PIN' },
-          { icon: Shield, title: 'Two-Factor Authentication', desc: 'Add an extra layer of security' },
-          { icon: User, title: 'Biometric Login', desc: 'Use fingerprint or face ID' },
+          { icon: Lock, title: 'Change Transaction PIN', desc: 'Update your 4-digit PIN', action: () => setShowChangePinModal(true) },
+          { icon: Shield, title: 'Two-Factor Authentication', desc: 'Add an extra layer of security', action: () => toast.info('2FA coming soon!') },
         ].map((item, idx) => (
           <button 
             key={idx}
-            onClick={() => toast.info(`${item.title} coming soon!`)}
+            onClick={item.action}
             className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-soft transition-all"
           >
             <div className="flex items-center gap-3">
@@ -298,7 +380,7 @@ export function Settings() {
       <div className="space-y-3">
         {/* Email Support */}
         <a 
-          href="mailto:support@usevelcro.com"
+          href="mailto:support@bridgecard.com"
           className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-soft hover:bg-blue-50/50 transition-all"
         >
           <div className="flex items-center gap-3">
@@ -307,7 +389,7 @@ export function Settings() {
             </div>
             <div>
               <p className="font-semibold text-gray-900">Email Support</p>
-              <p className="text-gray-500 text-sm">support@usevelcro.com</p>
+              <p className="text-gray-500 text-sm">support@bridgecard.com</p>
               <p className="text-xs text-gray-400 mt-1">Response within 24 hours</p>
             </div>
           </div>
@@ -425,6 +507,252 @@ export function Settings() {
             >
               Delete Account
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Change PIN Modal */}
+      {showChangePinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={resetChangePinFlow}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
+            {/* Header */}
+            <div className="p-5 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <KeyRound size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-display font-bold text-gray-900">Change Transaction PIN</h2>
+                    <p className="text-sm text-gray-500">
+                      Step {changePinStep === 'bvn' ? '1' : changePinStep === 'otp' ? '2' : changePinStep === 'newpin' ? '3' : '4'} of 4
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={resetChangePinFlow}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            {/* Step 1: BVN Verification */}
+            {changePinStep === 'bvn' && (
+              <div className="p-5 space-y-5">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Fingerprint size={32} className="text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Verify Your Identity</h3>
+                  <p className="text-sm text-gray-500">Enter your BVN to continue</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">Bank Verification Number (BVN)</Label>
+                  <Input
+                    type="text"
+                    maxLength={11}
+                    placeholder="Enter 11-digit BVN"
+                    value={bvn}
+                    onChange={(e) => setBvn(e.target.value.replace(/\D/g, ''))}
+                    className="text-center text-lg tracking-widest focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+
+                <div className="p-3 bg-amber-50 rounded-xl flex items-start gap-2">
+                  <Shield size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">
+                    Your BVN is securely encrypted and used only for identity verification.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleChangePinSubmitBvn}
+                  disabled={isLoading || bvn.length !== 11}
+                  className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight size={18} className="ml-2" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Step 2: OTP Verification */}
+            {changePinStep === 'otp' && (
+              <div className="p-5 space-y-5">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Mail size={32} className="text-green-600" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Enter OTP</h3>
+                  <p className="text-sm text-gray-500">Enter the 6-digit code sent to your email</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">One-Time Password (OTP)</Label>
+                  <Input
+                    type="text"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    className="text-center text-2xl tracking-[0.5em] focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <span className="text-gray-500">Didn't receive code?</span>
+                  <button 
+                    onClick={() => toast.success('OTP resent!')}
+                    className="text-velcro-green font-medium hover:underline"
+                  >
+                    Resend
+                  </button>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setChangePinStep('bvn')}
+                    className="flex-1 h-12 rounded-xl"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleChangePinVerifyOtp}
+                    disabled={isLoading || otp.length !== 6}
+                    className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                    ) : (
+                      'Verify'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: New PIN */}
+            {changePinStep === 'newpin' && (
+              <div className="p-5 space-y-5">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-velcro-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <KeyRound size={32} className="text-velcro-green" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Create New PIN</h3>
+                  <p className="text-sm text-gray-500">Enter a new 4-digit PIN for your account</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">New PIN</Label>
+                  <Input
+                    type="password"
+                    maxLength={4}
+                    placeholder="****"
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                    className="text-center text-2xl tracking-[0.5em] focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Check size={16} className={newPin.length === 4 ? 'text-green-500' : 'text-gray-300'} />
+                    <span>4 digits required</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setChangePinStep('otp')}
+                    className="flex-1 h-12 rounded-xl"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleChangePinSubmitNewPin}
+                    disabled={newPin.length !== 4}
+                    className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Confirm PIN */}
+            {changePinStep === 'confirm' && (
+              <div className="p-5 space-y-5">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-velcro-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <ShieldCheck size={32} className="text-velcro-green" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Confirm PIN</h3>
+                  <p className="text-sm text-gray-500">Re-enter your new PIN to confirm</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-gray-600 mb-2 block">Confirm PIN</Label>
+                  <Input
+                    type="password"
+                    maxLength={4}
+                    placeholder="****"
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                    className="text-center text-2xl tracking-[0.5em] focus:border-velcro-green focus:ring-velcro-green/20 rounded-xl"
+                  />
+                </div>
+
+                {confirmPin && newPin !== confirmPin && (
+                  <div className="p-3 bg-red-50 rounded-xl flex items-center gap-2">
+                    <XCircle size={16} className="text-red-600" />
+                    <p className="text-sm text-red-600">PINs do not match</p>
+                  </div>
+                )}
+
+                {confirmPin && newPin === confirmPin && (
+                  <div className="p-3 bg-green-50 rounded-xl flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-green-600" />
+                    <p className="text-sm text-green-600">PINs match!</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setChangePinStep('newpin')}
+                    className="flex-1 h-12 rounded-xl"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleChangePinComplete}
+                    disabled={isLoading || newPin !== confirmPin || confirmPin.length !== 4}
+                    className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-velcro-navy/30 border-t-velcro-navy rounded-full animate-spin" />
+                    ) : (
+                      'Change PIN'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
