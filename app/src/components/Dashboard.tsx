@@ -18,7 +18,8 @@ import {
   RefreshCcw,
   Wallet,
   LogOut,
-  Link2
+  Link2,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -87,9 +88,11 @@ interface DashboardProps {
   userKYC: UserKYC;
   velcroTag: string;
   velcroPoints: number;
+  hasWallet?: boolean;
+  onGenerateWallet?: () => void;
 }
 
-export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) {
+export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false, onGenerateWallet }: DashboardProps) {
   const [showBalance, setShowBalance] = useState(true);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -388,7 +391,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
               )}
               
               <div className="flex items-center gap-2 mb-2">
-                <img src={currency.logo} alt={currency.code} className="w-8 h-8 object-contain" />
+                <img src={currency.logo} alt={currency.code} className="w-8 h-8 object-contain rounded-sm" />
                 <div>
                   <p className={`font-semibold text-xs ${currency.isActive ? 'text-white' : 'text-gray-900'}`}>
                     {currency.code}
@@ -415,84 +418,131 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints }: DashboardProps) 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-display font-semibold text-gray-900">Solana Stable Hub</h2>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg">
-            <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+            <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4 object-contain" />
             <span className="text-xs text-purple-700 font-medium">Powered by Solana</span>
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-          </div>
-          
-          <div className="relative z-10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">USDC Balance</p>
-                    <p className="text-white/60 text-sm flex items-center gap-1">
-                      <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
-                      Solana Network
-                    </p>
-                  </div>
-                </div>
-                <p className="text-3xl font-display font-bold mt-3">
-                  {showBalance ? `$${usdcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '****'}
-                </p>
-                <p className="text-white/60 text-sm">≈ ₦{(usdcBalance * 1500).toLocaleString()} NGN</p>
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                    onClick={() => toast.info('Go to Crypto Hub to buy USDC')}
-                  >
-                    <ArrowDownLeft size={16} className="mr-1.5" />
-                    Buy
-                  </Button>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                    onClick={() => toast.info('Go to Crypto Hub to sell USDC')}
-                  >
-                    <ArrowUpRight size={16} className="mr-1.5" />
-                    Sell
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-white/60">
-                  <span>Buy: ₦1,500</span>
-                  <span className="text-white/40">|</span>
-                  <span>Sell: ₦1,480</span>
-                </div>
-              </div>
+        {!hasWallet ? (
+          /* No Wallet - Show Generate CTA */
+          <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
             </div>
             
-            {/* Wallet Address */}
-            <div className="mt-4 p-3 bg-white/10 rounded-xl flex items-center justify-between backdrop-blur-sm">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <span className="text-xs text-white/60">Solana:</span>
-                <span className="text-sm font-mono text-white/80 truncate">
-                  7xKX...sAsU
-                </span>
+            <div className="relative z-10">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8 object-contain" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">USDC Wallet</p>
+                      <p className="text-white/60 text-sm">Stablecoins on Solana</p>
+                    </div>
+                  </div>
+                  <p className="text-white/80 text-sm mb-4">
+                    Create a wallet to buy, sell, and store USDC securely. No KYC required to start.
+                  </p>
+                  <div className="flex flex-wrap gap-3 text-xs text-white/60">
+                    <span className="flex items-center gap-1">
+                      <Check size={12} className="text-green-400" />
+                      $100 limit without KYC
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Check size={12} className="text-green-400" />
+                      Instant setup
+                    </span>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={onGenerateWallet}
+                  className="bg-white hover:bg-white/90 text-purple-900 font-semibold px-6 py-3 rounded-xl flex-shrink-0"
+                >
+                  <Wallet size={18} className="mr-2" />
+                  Generate Wallet
+                </Button>
               </div>
-              <button 
-                onClick={copyWalletAddress}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
-              >
-                <Copy size={14} />
-              </button>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Has Wallet - Show Balance */
+          <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 rounded-2xl p-6 text-white relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+            </div>
+            
+            <div className="relative z-10">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8 object-contain" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">USDC Balance</p>
+                      <p className="text-white/60 text-sm flex items-center gap-1">
+                        <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4 object-contain" />
+                        Solana Network
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-3xl font-display font-bold mt-3">
+                    {showBalance ? `$${usdcBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : '****'}
+                  </p>
+                  <p className="text-white/60 text-sm">≈ ₦{(usdcBalance * 1500).toLocaleString()} NGN</p>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                      onClick={() => toast.info('Go to Crypto Hub to buy USDC')}
+                    >
+                      <ArrowDownLeft size={16} className="mr-1.5" />
+                      Buy
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                      onClick={() => toast.info('Go to Crypto Hub to sell USDC')}
+                    >
+                      <ArrowUpRight size={16} className="mr-1.5" />
+                      Sell
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-white/60">
+                    <span>Buy: ₦1,500</span>
+                    <span className="text-white/40">|</span>
+                    <span>Sell: ₦1,480</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Wallet Address */}
+              <div className="mt-4 p-3 bg-white/10 rounded-xl flex items-center justify-between backdrop-blur-sm">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <span className="text-xs text-white/60">Solana:</span>
+                  <span className="text-sm font-mono text-white/80 truncate">
+                    7xKX...sAsU
+                  </span>
+                </div>
+                <button 
+                  onClick={copyWalletAddress}
+                  className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent Transactions */}

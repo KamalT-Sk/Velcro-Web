@@ -14,7 +14,7 @@ import { SupportButton } from './components/SupportButton';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Wallet, Shield, Check, Sparkles, X, Copy, AlertCircle } from 'lucide-react';
+import { Wallet, Shield, Check, Sparkles, X } from 'lucide-react';
 
 export type View = 'dashboard' | 'payment-links' | 'crypto' | 'utilities' | 'settings' | 'cards';
 export type AuthState = 'signup' | 'login' | 'otp' | 'pin' | 'authenticated';
@@ -145,6 +145,8 @@ function App() {
               userKYC={userKYC} 
               velcroTag={velcroTag}
               velcroPoints={velcroPoints}
+              hasWallet={hasWallet}
+              onGenerateWallet={() => setShowGenerateWalletModal(true)}
             />
           )}
           {currentView === 'payment-links' && <PaymentLinks />}
@@ -202,10 +204,8 @@ interface GenerateWalletModalProps {
 }
 
 function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) {
-  const [step, setStep] = useState<'intro' | 'creating' | 'backup' | 'complete'>('intro');
-  const [seedPhrase, setSeedPhrase] = useState<string[]>([]);
+  const [step, setStep] = useState<'intro' | 'creating' | 'complete'>('intro');
   const [walletAddress, setWalletAddress] = useState('');
-  const [copied, setCopied] = useState(false);
 
   const generateWallet = async () => {
     setStep('creating');
@@ -213,29 +213,19 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
     // Simulate wallet creation process
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate mock wallet address
+    // Generate mock wallet address (managed by Velcro)
     const address = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
     setWalletAddress(address);
     
-    // Generate mock seed phrase
-    const words = ['abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse', 'access', 'accident'];
-    setSeedPhrase(words);
-    
-    setStep('backup');
-  };
-
-  const copySeedPhrase = () => {
-    navigator.clipboard.writeText(seedPhrase.join(' '));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    toast.success('Seed phrase copied!');
+    // Skip seed phrase - wallet is managed by Velcro
+    setStep('complete');
+    setTimeout(() => {
+      onComplete(address);
+    }, 1500);
   };
 
   const completeSetup = () => {
-    setStep('complete');
-    setTimeout(() => {
-      onComplete(walletAddress);
-    }, 1500);
+    onComplete(walletAddress);
   };
 
   return (
@@ -248,7 +238,6 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
             <h2 className="text-xl font-display font-bold text-gray-900">
               {step === 'intro' && 'Create Crypto Wallet'}
               {step === 'creating' && 'Creating Wallet...'}
-              {step === 'backup' && 'Backup Your Wallet'}
               {step === 'complete' && 'Wallet Ready!'}
             </h2>
             {step !== 'creating' && step !== 'complete' && (
@@ -266,9 +255,9 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Wallet size={40} className="text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Your Own USDC Wallet</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Your USDC Wallet</h3>
                 <p className="text-sm text-gray-600">
-                  Create a self-custody Solana wallet to store, send, and receive USDC.
+                  Create a secure Solana wallet to store, send, and receive USDC.
                 </p>
               </div>
 
@@ -287,8 +276,8 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
                     <Shield size={16} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Self-Custody</p>
-                    <p className="text-xs text-gray-500">You control your keys. We cannot access your funds.</p>
+                    <p className="font-medium text-gray-900 text-sm">Secure Storage</p>
+                    <p className="text-xs text-gray-500">Your wallet is secured by Velcro. No keys to manage.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
@@ -319,52 +308,7 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Creating Your Wallet</h3>
-              <p className="text-sm text-gray-500">Generating secure keys on the Solana blockchain...</p>
-            </div>
-          )}
-
-          {step === 'backup' && (
-            <div className="space-y-6">
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-amber-800 text-sm">Important: Save Your Recovery Phrase</p>
-                    <p className="text-xs text-amber-600 mt-1">
-                      This is the only way to recover your wallet. Never share it with anyone.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gray-900 rounded-xl">
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  {seedPhrase.map((word, index) => (
-                    <div key={index} className="flex items-center gap-1 p-2 bg-gray-800 rounded-lg">
-                      <span className="text-gray-500 text-xs">{index + 1}.</span>
-                      <span className="text-white text-sm font-mono">{word}</span>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={copySeedPhrase}
-                  className="w-full flex items-center justify-center gap-2 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
-                >
-                  {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-                  {copied ? 'Copied!' : 'Copy to Clipboard'}
-                </button>
-              </div>
-
-              <div className="flex items-start gap-2 text-xs text-gray-500">
-                <input type="checkbox" id="backup-confirm" className="mt-0.5" />
-                <label htmlFor="backup-confirm">
-                  I have saved my recovery phrase in a secure location
-                </label>
-              </div>
-
-              <Button onClick={completeSetup} className="w-full h-12 text-base font-semibold bg-purple-600 hover:bg-purple-700">
-                I've Saved My Phrase
-              </Button>
+              <p className="text-sm text-gray-500">Setting up your secure USDC wallet...</p>
             </div>
           )}
 

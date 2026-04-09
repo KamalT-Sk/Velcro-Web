@@ -647,7 +647,7 @@ export function CryptoHub({ userKYC, onOpenKYC, hasWallet, walletAddress: propWa
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">Token</span>
                 <div className="flex items-center gap-2">
-                  <img src={EXTERNAL_TOKENS.find(t => t.symbol === tx.token)?.logo} alt={tx.token} className="w-5 h-5" />
+                  <img src={EXTERNAL_TOKENS.find(t => t.symbol === tx.token)?.logo} alt={tx.token} className="w-5 h-5 object-contain" />
                   <span className="text-sm font-medium">{tx.token}</span>
                 </div>
               </div>
@@ -656,7 +656,7 @@ export function CryptoHub({ userKYC, onOpenKYC, hasWallet, walletAddress: propWa
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-600">Blockchain</span>
                   <div className="flex items-center gap-2">
-                    <img src={BLOCKCHAINS.find(c => c.name === tx.chain)?.logo} alt={tx.chain} className="w-5 h-5" />
+                    <img src={BLOCKCHAINS.find(c => c.name === tx.chain)?.logo} alt={tx.chain} className="w-5 h-5 object-contain" />
                     <span className="text-sm font-medium">{tx.chain}</span>
                   </div>
                 </div>
@@ -736,7 +736,7 @@ Thank you.`;
                   }}
                   className="w-full flex items-center px-4 py-3 border border-green-200 hover:bg-green-50 hover:border-green-300 rounded-xl transition-colors"
                 >
-                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
+                  <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3 object-contain" />
                   <div className="text-left flex-1">
                     <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
                     <p className="text-xs text-gray-500">+234 800 123 4567</p>
@@ -763,7 +763,7 @@ Thank you.`;
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
-            <img src="images/solana-logo.png" alt="Solana" className="w-8 h-8" />
+            <img src="images/solana-logo.png" alt="Solana" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -803,7 +803,7 @@ Thank you.`;
           <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1.5">
               <Shield size={14} className="text-green-500" />
-              Self-custody
+              Secure storage
             </span>
             <span className="flex items-center gap-1.5">
               <Check size={14} className="text-green-500" />
@@ -849,11 +849,11 @@ Thank you.`;
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <img src="images/usdc-logo.png" alt="USDC" className="w-10 h-10" />
+                <img src="images/usdc-logo.png" alt="USDC" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <img src="images/solana-logo.png" alt="Solana" className="w-5 h-5" />
+                  <img src="images/solana-logo.png" alt="Solana" className="w-5 h-5 object-contain" />
                   <span className="text-white/70 text-sm">USDC on Solana</span>
                 </div>
                 <p className="text-4xl font-display font-bold">{showBalance ? `$${solanaBalance.toLocaleString()}` : '****'}</p>
@@ -954,12 +954,12 @@ Thank you.`;
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8" />
+                  <img src="images/usdc-logo.png" alt="USDC" className="w-8 h-8 object-contain" />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">USDC</p>
                   <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4 object-contain" />
                     <span>Solana</span>
                   </div>
                 </div>
@@ -976,7 +976,7 @@ Thank you.`;
             <div className="flex flex-wrap gap-2">
               {BLOCKCHAINS.map((chain) => (
                 <div key={chain.name} className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-100 rounded-xl">
-                  <img src={chain.logo} alt={chain.name} className="w-5 h-5" />
+                  <img src={chain.logo} alt={chain.name} className="w-5 h-5 object-contain" />
                   <span className="text-sm text-gray-700">{chain.name}</span>
                 </div>
               ))}
@@ -1004,7 +1004,7 @@ Thank you.`;
                 </span>
               )}
               <div className="flex items-center gap-2 mb-2">
-                <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6" />
+                <img src="images/solana-logo.png" alt="Solana" className="w-6 h-6 object-contain" />
                 <span className={`font-medium ${buyMode === 'main' ? 'text-gray-900' : 'text-gray-600'}`}>To Solana Wallet</span>
               </div>
               <p className="text-xs text-gray-500">USDC directly to main wallet</p>
@@ -1095,7 +1095,7 @@ Thank you.`;
                 <button onClick={() => setShowBuyTokenSelect(!showBuyTokenSelect)}
                   className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === buyExternalToken)?.logo} alt={buyExternalToken} className="w-8 h-8" />
+                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === buyExternalToken)?.logo} alt={buyExternalToken} className="w-8 h-8 object-contain" />
                     <span className="font-medium">{buyExternalToken}</span>
                   </div>
                   <ChevronDown size={18} className="text-gray-400" />
@@ -1105,7 +1105,7 @@ Thank you.`;
                     {EXTERNAL_TOKENS.map((token) => (
                       <button key={token.symbol} onClick={() => { setBuyExternalToken(token.symbol); setShowBuyTokenSelect(false); }}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                        <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
+                        <img src={token.logo} alt={token.symbol} className="w-8 h-8 object-contain" />
                         <span className="font-medium">{token.symbol}</span>
                       </button>
                     ))}
@@ -1118,7 +1118,7 @@ Thank you.`;
                 <button onClick={() => setShowBuyChainSelect(!showBuyChainSelect)}
                   className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <img src={BLOCKCHAINS.find(c => c.name === buyExternalChain)?.logo} alt={buyExternalChain} className="w-6 h-6" />
+                    <img src={BLOCKCHAINS.find(c => c.name === buyExternalChain)?.logo} alt={buyExternalChain} className="w-6 h-6 object-contain" />
                     <span className="font-medium">{buyExternalChain}</span>
                   </div>
                   <ChevronDown size={18} className="text-gray-400" />
@@ -1128,7 +1128,7 @@ Thank you.`;
                     {BLOCKCHAINS.filter(c => c.tokens.includes(buyExternalToken)).map((chain) => (
                       <button key={chain.name} onClick={() => { setBuyExternalChain(chain.name); setShowBuyChainSelect(false); }}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                        <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
+                        <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
                         <span className="font-medium">{chain.name}</span>
                       </button>
                     ))}
@@ -1261,7 +1261,7 @@ Thank you.`;
                 <button onClick={() => setShowSellTokenSelect(!showSellTokenSelect)}
                   className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white">
                   <div className="flex items-center gap-3">
-                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === sellExternalToken)?.logo} alt={sellExternalToken} className="w-8 h-8" />
+                    <img src={EXTERNAL_TOKENS.find(t => t.symbol === sellExternalToken)?.logo} alt={sellExternalToken} className="w-8 h-8 object-contain" />
                     <span className="font-medium">{sellExternalToken}</span>
                   </div>
                   <ChevronDown size={18} className="text-gray-400" />
@@ -1271,7 +1271,7 @@ Thank you.`;
                     {EXTERNAL_TOKENS.map((token) => (
                       <button key={token.symbol} onClick={() => { setSellExternalToken(token.symbol); setShowSellTokenSelect(false); }}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                        <img src={token.logo} alt={token.symbol} className="w-8 h-8" />
+                        <img src={token.logo} alt={token.symbol} className="w-8 h-8 object-contain" />
                         <span className="font-medium">{token.symbol}</span>
                       </button>
                     ))}
@@ -1284,7 +1284,7 @@ Thank you.`;
                 <button onClick={() => setShowSellChainSelect(!showSellChainSelect)}
                   className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl bg-white">
                   <div className="flex items-center gap-3">
-                    <img src={BLOCKCHAINS.find(c => c.name === sellExternalChain)?.logo} alt={sellExternalChain} className="w-6 h-6" />
+                    <img src={BLOCKCHAINS.find(c => c.name === sellExternalChain)?.logo} alt={sellExternalChain} className="w-6 h-6 object-contain" />
                     <span className="font-medium">{sellExternalChain}</span>
                   </div>
                   <ChevronDown size={18} className="text-gray-400" />
@@ -1294,7 +1294,7 @@ Thank you.`;
                     {BLOCKCHAINS.filter(c => c.tokens.includes(sellExternalToken)).map((chain) => (
                       <button key={chain.name} onClick={() => { setSellExternalChain(chain.name); setShowSellChainSelect(false); }}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50">
-                        <img src={chain.logo} alt={chain.name} className="w-6 h-6" />
+                        <img src={chain.logo} alt={chain.name} className="w-6 h-6 object-contain" />
                         <span className="font-medium">{chain.name}</span>
                       </button>
                     ))}
@@ -1465,12 +1465,12 @@ Thank you.`;
             <div className="p-4 bg-purple-50 border border-purple-100 rounded-xl">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-                  <img src="images/usdc-logo.png" alt="USDC" className="w-6 h-6" />
+                  <img src="images/usdc-logo.png" alt="USDC" className="w-6 h-6 object-contain" />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">USDC</p>
                   <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4" />
+                    <img src="images/solana-logo.png" alt="Solana" className="w-4 h-4 object-contain" />
                     <span>Solana Main Wallet</span>
                   </div>
                 </div>

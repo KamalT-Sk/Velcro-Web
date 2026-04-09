@@ -542,7 +542,7 @@ export function Utilities() {
             <div className="flex -space-x-2">
               {airlines.slice(0, 3).map((airline) => (
                 <div key={airline.id} className="w-9 h-9 sm:w-12 sm:h-12 rounded-full border-2 border-white bg-white overflow-hidden">
-                  <img src={airline.logo} alt={airline.name} className="w-full h-full object-cover" />
+                  <img src={airline.logo} alt={airline.name} className="w-full h-full object-contain p-1" />
                 </div>
               ))}
             </div>
@@ -761,7 +761,7 @@ export function Utilities() {
                   onClick={() => setSelectedAirline(airline)}
                   className="p-3 sm:p-4 border border-gray-100 rounded-xl hover:border-velcro-green hover:bg-velcro-green/5 transition-all text-center"
                 >
-                  <img src={airline.logo} alt={airline.name} className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 rounded-full object-cover" />
+                  <img src={airline.logo} alt={airline.name} className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 rounded-full object-contain bg-gray-50 p-1" />
                   <p className="text-xs sm:text-sm font-medium text-gray-900">{airline.name}</p>
                 </button>
               ))}
@@ -771,7 +771,7 @@ export function Utilities() {
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 space-y-5 sm:space-y-6">
           <div className="text-center">
-            <img src={selectedAirline.logo} alt={selectedAirline.name} className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full object-cover" />
+            <img src={selectedAirline.logo} alt={selectedAirline.name} className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-full object-contain bg-gray-50 p-2" />
             <h3 className="text-base sm:text-lg font-semibold text-gray-900">{selectedAirline.name}</h3>
             <p className="text-gray-500 text-sm">Confirm your booking details</p>
           </div>
@@ -851,7 +851,7 @@ export function Utilities() {
               onClick={() => setSelectedProvider(provider)}
               className="flex items-center gap-4 p-3 sm:p-4 bg-white border border-gray-100 rounded-xl hover:border-velcro-green hover:shadow-soft transition-all"
             >
-              <img src={provider.logo} alt={provider.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover" />
+              <img src={provider.logo} alt={provider.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-contain bg-gray-50" />
               <span className="font-medium text-gray-900 text-sm sm:text-base">{provider.name}</span>
             </button>
           ))}
@@ -960,9 +960,9 @@ export function Utilities() {
                       : 'border-gray-100 hover:border-gray-200'}`}
                 >
                   {source.type === 'ngn' ? (
-                    <img src="logos/ng.png" alt="NGN" className="w-8 h-8 rounded-full object-cover" />
+                    <img src="logos/ng.png" alt="NGN" className="w-8 h-8 rounded-full object-contain" />
                   ) : (
-                    <img src="logos/usdc.png" alt="USDC" className="w-8 h-8 rounded-full object-cover" />
+                    <img src="logos/usdc.png" alt="USDC" className="w-8 h-8 rounded-full object-contain" />
                   )}
                   <div>
                     <p className={`font-medium text-sm ${paymentSource === source.type ? 'text-gray-900' : 'text-gray-600'}`}>
