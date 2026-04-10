@@ -12,9 +12,7 @@ import {
   RotateCcw,
   ArrowDownLeft,
   ArrowUpRight,
-  Repeat,
   Download,
-  ArrowUp,
   RefreshCcw,
   Wallet,
   LogOut,
@@ -94,6 +92,8 @@ interface DashboardProps {
 
 export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false, onGenerateWallet }: DashboardProps) {
   const [showBalance, setShowBalance] = useState(true);
+  const [currentPoints, setCurrentPoints] = useState(velcroPoints);
+  const [isRefreshingPoints, setIsRefreshingPoints] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -253,15 +253,15 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
   const getTransactionBg = (type: string) => {
     switch (type) {
       case 'receive':
-        return 'bg-emerald-600';
+        return 'bg-velcro-green';
       case 'send':
-        return 'bg-slate-700';
+        return 'bg-velcro-navy';
       case 'convert':
-        return 'bg-indigo-600';
+        return 'bg-velcro-navy/80';
       case 'deposit':
-        return 'bg-violet-600';
+        return 'bg-velcro-green/80';
       case 'withdrawal':
-        return 'bg-amber-600';
+        return 'bg-velcro-navy/60';
       default:
         return 'bg-gray-600';
     }
@@ -270,38 +270,67 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header with VelcroTag & VelcroPoints - Small on top left */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex flex-col gap-4 pl-14 lg:pl-0">
+        {/* Top row: Title/Welcome + Points/Tag */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-display font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 text-sm">Welcome back, Shehu Kamal!</p>
           </div>
           
-          {/* VelcroTag - Small, copyable */}
-          {userKYC.tier !== 'none' && (
+          <div className="flex items-center gap-3">
+            {/* VelcroTag - Small, copyable */}
+            {userKYC.tier !== 'none' && (
+              <button
+                onClick={copyVelcroTag}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-velcro-navy text-white rounded-lg text-sm hover:bg-velcro-navy/90 transition-colors"
+                title="Click to copy"
+              >
+                <span className="text-white/70">@</span>
+                <span className="font-medium">{velcroTag}</span>
+                <Copy size={12} className="text-white/60" />
+              </button>
+            )}
+            
+            {/* VelcroPoints - Refreshable */}
             <button
-              onClick={copyVelcroTag}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-velcro-navy text-white rounded-lg text-sm hover:bg-velcro-navy/90 transition-colors"
-              title="Click to copy"
+              onClick={async () => {
+                setIsRefreshingPoints(true);
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Randomly add 0-50 points to simulate new activity
+                const newPoints = currentPoints + Math.floor(Math.random() * 50);
+                setCurrentPoints(newPoints);
+                setIsRefreshingPoints(false);
+              }}
+              disabled={isRefreshingPoints}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm hover:bg-amber-100 transition-colors disabled:opacity-70"
             >
-              <span className="text-white/70">@</span>
-              <span className="font-medium">{velcroTag}</span>
-              <Copy size={12} className="text-white/60" />
+              <span className={`font-medium text-amber-900 ${isRefreshingPoints ? 'animate-pulse' : ''}`}>{currentPoints.toLocaleString()} pts</span>
             </button>
-          )}
-          
-          {/* VelcroPoints - Small */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-            <RotateCcw size={14} className="text-amber-600" />
-            <span className="font-medium text-amber-900">{velcroPoints.toLocaleString()} pts</span>
           </div>
         </div>
         
+        {/* Headline */}
+        <div>
+          <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900">Your Global Account</h2>
+          <p className="text-gray-500 text-sm mt-1">Receive, hold, and spend money across currencies — instantly.</p>
+        </div>
+        
+        {/* KYC Banner - Full width */}
         {userKYC.tier === 'none' && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-            <AlertCircle size={16} className="text-amber-600" />
-            <span className="text-sm text-amber-700">Complete KYC to unlock full features</span>
-          </div>
+          <button 
+            onClick={() => {}}
+            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:shadow-md transition-all w-fit"
+          >
+            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+              <AlertCircle size={20} className="text-amber-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-amber-900">Complete KYC</p>
+              <p className="text-xs text-amber-700">Unlock full features</p>
+            </div>
+          </button>
         )}
       </div>
 
@@ -443,7 +472,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
                     </div>
                   </div>
                   <p className="text-white/80 text-sm mb-4">
-                    Create a wallet to buy, sell, and store USDC securely. No KYC required to start.
+                    Create a wallet to buy, sell, spend, and store USDC securely. No KYC required to start.
                   </p>
                   <div className="flex flex-wrap gap-3 text-xs text-white/60">
                     <span className="flex items-center gap-1">

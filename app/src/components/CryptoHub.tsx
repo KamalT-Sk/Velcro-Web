@@ -17,8 +17,6 @@ import {
   History,
   ArrowRightLeft,
   X,
-  Hash,
-  Calendar,
   Clock,
   CheckCircle2,
   XCircle,
@@ -760,7 +758,7 @@ Thank you.`;
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-14 lg:pl-0">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
             <img src="images/solana-logo.png" alt="Solana" className="w-8 h-8 object-contain" />

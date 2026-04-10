@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { 
   User, 
   Bell, 
@@ -50,6 +51,7 @@ const settingSections: SettingSection[] = [
 ];
 
 export function Settings() {
+  const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     fullName: 'John Doe',
@@ -65,7 +67,6 @@ export function Settings() {
     promotions: false,
   });
   const [preferences, setPreferences] = useState({
-    darkMode: false,
     currency: 'NGN',
     language: 'en',
   });
@@ -370,30 +371,28 @@ export function Settings() {
 
   const renderPreferenceSettings = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+      <div className="flex items-center justify-between p-4 bg-muted rounded-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-            <Moon size={18} className="text-gray-600" />
+          <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
+            <Moon size={18} className="text-muted-foreground" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">Dark Mode</p>
-            <p className="text-gray-500 text-sm">Switch between light and dark theme</p>
+            <p className="font-medium text-foreground">Dark Mode</p>
+            <p className="text-muted-foreground text-sm">Switch between light and dark theme</p>
           </div>
         </div>
         <Switch
-          checked={preferences.darkMode}
-          onCheckedChange={(checked) => 
-            setPreferences({ ...preferences, darkMode: checked })
-          }
+          checked={theme === 'dark'}
+          onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm text-gray-600">Default Currency</label>
+        <label className="text-sm text-muted-foreground">Default Currency</label>
         <select 
           value={preferences.currency}
           onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none"
+          className="w-full px-4 py-3 border border-border rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none bg-background text-foreground"
         >
           <option value="NGN">Nigerian Naira (₦)</option>
           <option value="USD">US Dollar ($)</option>
@@ -403,11 +402,11 @@ export function Settings() {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm text-gray-600">Language</label>
+        <label className="text-sm text-muted-foreground">Language</label>
         <select 
           value={preferences.language}
           onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none"
+          className="w-full px-4 py-3 border border-border rounded-xl focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none bg-background text-foreground"
         >
           <option value="en">English</option>
           <option value="fr">French</option>
@@ -506,21 +505,21 @@ export function Settings() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="pl-12 lg:pl-0">
-        <h1 className="text-2xl font-display font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 text-sm">Manage your account preferences</p>
+      <div className="pl-14 lg:pl-0">
+        <h1 className="text-2xl font-display font-bold text-foreground">Settings</h1>
+        <p className="text-muted-foreground text-sm">Manage your account preferences</p>
       </div>
 
       {activeSection ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-soft">
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
           <div className="flex items-center gap-3 mb-6">
             <button 
               onClick={() => setActiveSection(null)}
-              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              className="p-2 hover:bg-secondary rounded-xl transition-colors"
             >
-              <ChevronRight size={20} className="rotate-180 text-gray-500" />
+              <ChevronRight size={20} className="rotate-180 text-muted-foreground" />
             </button>
-            <h2 className="text-lg font-display font-semibold text-gray-900">
+            <h2 className="text-lg font-display font-semibold text-foreground">
               {settingSections.find(s => s.id === activeSection)?.title}
             </h2>
           </div>
@@ -534,18 +533,18 @@ export function Settings() {
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-soft transition-all text-left"
+                className="w-full flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:border-border hover:shadow-soft transition-all text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <Icon size={18} className="text-gray-600" />
+                  <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
+                    <Icon size={18} className="text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{section.title}</p>
-                    <p className="text-gray-500 text-sm">{section.description}</p>
+                    <p className="font-medium text-foreground">{section.title}</p>
+                    <p className="text-muted-foreground text-sm">{section.description}</p>
                   </div>
                 </div>
-                <ChevronRight size={18} className="text-gray-400" />
+                <ChevronRight size={18} className="text-muted-foreground" />
               </button>
             );
           })}

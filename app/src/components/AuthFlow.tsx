@@ -235,11 +235,11 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
           <div key={step.id} className="flex items-center">
             <div 
               className={`w-2 h-2 rounded-full transition-colors ${
-                index <= currentIndex ? 'bg-blue-500' : 'bg-gray-200'
+                index <= currentIndex ? 'bg-velcro-green' : 'bg-gray-200'
               }`}
             />
             {index < steps.length - 1 && (
-              <div className={`w-4 h-0.5 ${index < currentIndex ? 'bg-blue-500' : 'bg-gray-200'}`} />
+              <div className={`w-4 h-0.5 ${index < currentIndex ? 'bg-velcro-green' : 'bg-gray-200'}`} />
             )}
           </div>
         ))}
@@ -276,8 +276,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'name-email' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
-                      <UserCircle className="text-velcro-green" size={28} />
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
+                      <UserCircle className="text-velcro-navy" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create Account</h2>
                     <p className="text-gray-500 text-sm">Let's get started with your details</p>
@@ -365,8 +365,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'email-otp' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200">
-                      <Mail className="text-amber-600" size={28} />
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
+                      <Mail className="text-velcro-navy" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify Email</h2>
                     <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
@@ -432,22 +432,22 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'phone' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-200">
-                      <Smartphone className="text-green-600" size={28} />
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
+                      <Smartphone className="text-velcro-green" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Phone Number</h2>
                     <p className="text-gray-500 text-sm">Add your WhatsApp number</p>
                   </div>
 
                   {/* WhatsApp Info Box */}
-                  <div className="p-4 bg-green-50 rounded-xl border border-green-100 mb-6">
+                  <div className="p-4 bg-velcro-green/10 rounded-xl border border-velcro-green/20 mb-6">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <MessageCircle size={20} className="text-green-600" />
+                      <div className="w-10 h-10 bg-velcro-green/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <MessageCircle size={20} className="text-velcro-green" />
                       </div>
                       <div>
-                        <p className="text-sm text-green-800 font-medium">Use your WhatsApp number</p>
-                        <p className="text-xs text-green-600 mt-1">
+                        <p className="text-sm text-velcro-navy font-medium">Use your WhatsApp number</p>
+                        <p className="text-xs text-gray-600 mt-1">
                           We'll send your OTP via WhatsApp for faster and more secure verification.
                         </p>
                       </div>
@@ -502,8 +502,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'whatsapp-otp' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-200">
-                      <MessageCircle className="text-green-600" size={28} />
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
+                      <MessageCircle className="text-velcro-green" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify WhatsApp</h2>
                     <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
@@ -569,8 +569,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'pin' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
-                      <Lock className="text-blue-600" size={28} />
+                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
+                      <Lock className="text-velcro-navy" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create PIN</h2>
                     <p className="text-gray-500 text-sm">Secure your account with a 4-digit PIN</p>
@@ -650,8 +650,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
-                  <CheckCircle className="text-blue-600" size={28} />
+                <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
+                  <CheckCircle className="text-velcro-navy" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Welcome Back</h2>
                 <p className="text-gray-500 text-sm">Sign in to your Velcro account</p>
@@ -688,10 +688,10 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 </Button>
               </form>
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+              <div className="mt-6 p-4 bg-velcro-navy/10 rounded-xl">
                 <div className="flex items-center gap-3 text-gray-600 text-sm">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Mail size={16} className="text-blue-600" />
+                  <div className="w-8 h-8 bg-velcro-navy/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Mail size={16} className="text-velcro-navy" />
                   </div>
                   <span>Passwordless login with OTP</span>
                 </div>
@@ -720,8 +720,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200">
-                  <KeyRound className="text-amber-600" size={28} />
+                <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
+                  <KeyRound className="text-velcro-green" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter OTP</h2>
                 <p className="text-gray-500 text-sm">We've sent a 5-digit code to {formData.email || 'your email'}</p>
@@ -796,8 +796,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
-                  <Lock className="text-blue-600" size={28} />
+                <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
+                  <Lock className="text-velcro-navy" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter PIN</h2>
                 <p className="text-gray-500 text-sm">Enter your 4-digit PIN to continue</p>

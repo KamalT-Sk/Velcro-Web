@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ThemeProvider } from 'next-themes';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { PaymentLinks } from './components/PaymentLinks';
@@ -94,106 +95,110 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-        {/* Velcro Logo - Favicon */}
-        <div className="relative mb-6">
-          <img 
-            src="./favicon.png" 
-            alt="Velcro" 
-            className="w-20 h-20 object-contain animate-pulse-soft"
-          />
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+          {/* Velcro Logo - Favicon */}
+          <div className="relative mb-6">
+            <img 
+              src="./favicon.png" 
+              alt="Velcro" 
+              className="w-20 h-20 object-contain animate-pulse-soft"
+            />
+          </div>
+          
+          {/* Loading Text */}
+          <p className="text-muted-foreground text-sm">Loading your experience...</p>
+          
+          {/* Progress Bar */}
+          <div className="mt-6 w-48 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-velcro-green rounded-full animate-loading-bar" />
+          </div>
         </div>
-        
-        {/* Loading Text */}
-        <p className="text-gray-400 text-sm">Loading your experience...</p>
-        
-        {/* Progress Bar */}
-        <div className="mt-6 w-48 h-1 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-velcro-green rounded-full animate-loading-bar" />
-        </div>
-      </div>
+      </ThemeProvider>
     );
   }
 
   if (authState !== 'authenticated') {
     return (
-      <>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <AuthFlow authState={authState} setAuthState={setAuthState} onComplete={handleAuthComplete} />
         <Toaster />
-      </>
+      </ThemeProvider>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar 
-        currentView={currentView} 
-        onViewChange={setCurrentView}
-        userKYC={userKYC}
-        whatsAppNumber={whatsAppNumber}
-        velcroTag={velcroTag}
-        velcroPoints={velcroPoints}
-        onWhatsAppClick={() => setShowWhatsAppSync(true)}
-        onKYCClick={() => setShowKYC(true)}
-        onSignOut={handleSignOut}
-      />
-      
-      <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-auto">
-        <div className="p-4 lg:p-8 max-w-7xl mx-auto">
-          {currentView === 'dashboard' && (
-            <Dashboard 
-              userKYC={userKYC} 
-              velcroTag={velcroTag}
-              velcroPoints={velcroPoints}
-              hasWallet={hasWallet}
-              onGenerateWallet={() => setShowGenerateWalletModal(true)}
-            />
-          )}
-          {currentView === 'payment-links' && <PaymentLinks />}
-          {currentView === 'crypto' && (
-            <CryptoHub 
-              userKYC={userKYC} 
-              onOpenKYC={() => setShowKYC(true)}
-              hasWallet={hasWallet}
-              walletAddress={walletAddress}
-              onGenerateWallet={() => setShowGenerateWalletModal(true)}
-            />
-          )}
-          {currentView === 'utilities' && <Utilities />}
-          {currentView === 'settings' && <Settings />}
-          {currentView === 'cards' && <Cards />}
-        </div>
-      </main>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar 
+          currentView={currentView} 
+          onViewChange={setCurrentView}
+          userKYC={userKYC}
+          whatsAppNumber={whatsAppNumber}
+          velcroTag={velcroTag}
+          velcroPoints={velcroPoints}
+          onWhatsAppClick={() => setShowWhatsAppSync(true)}
+          onKYCClick={() => setShowKYC(true)}
+          onSignOut={handleSignOut}
+        />
+        
+        <main className="flex-1 ml-0 lg:ml-72 min-h-screen overflow-auto">
+          <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+            {currentView === 'dashboard' && (
+              <Dashboard 
+                userKYC={userKYC} 
+                velcroTag={velcroTag}
+                velcroPoints={velcroPoints}
+                hasWallet={hasWallet}
+                onGenerateWallet={() => setShowGenerateWalletModal(true)}
+              />
+            )}
+            {currentView === 'payment-links' && <PaymentLinks />}
+            {currentView === 'crypto' && (
+              <CryptoHub 
+                userKYC={userKYC} 
+                onOpenKYC={() => setShowKYC(true)}
+                hasWallet={hasWallet}
+                walletAddress={walletAddress}
+                onGenerateWallet={() => setShowGenerateWalletModal(true)}
+              />
+            )}
+            {currentView === 'utilities' && <Utilities />}
+            {currentView === 'settings' && <Settings />}
+            {currentView === 'cards' && <Cards />}
+          </div>
+        </main>
 
-      {showKYC && <KYCModal onClose={() => setShowKYC(false)} onComplete={handleKYCComplete} />}
-      {showWhatsAppSync && (
-        <WhatsAppSyncModal 
-          onClose={() => setShowWhatsAppSync(false)} 
-          onSync={(number) => {
-            setWhatsAppNumber(number);
-            setShowWhatsAppSync(false);
-          }}
-          currentNumber={whatsAppNumber}
-          userEmail="user@example.com"
-        />
-      )}
-      
-      {/* Generate Wallet Modal */}
-      {showGenerateWalletModal && (
-        <GenerateWalletModal
-          onClose={() => setShowGenerateWalletModal(false)}
-          onComplete={(address) => {
-            setHasWallet(true);
-            setWalletAddress(address);
-            setShowGenerateWalletModal(false);
-            toast.success('Your crypto wallet has been created successfully!');
-          }}
-        />
-      )}
-      
-      <SupportButton />
-      <Toaster />
-    </div>
+        {showKYC && <KYCModal onClose={() => setShowKYC(false)} onComplete={handleKYCComplete} />}
+        {showWhatsAppSync && (
+          <WhatsAppSyncModal 
+            onClose={() => setShowWhatsAppSync(false)} 
+            onSync={(number) => {
+              setWhatsAppNumber(number);
+              setShowWhatsAppSync(false);
+            }}
+            currentNumber={whatsAppNumber}
+            userEmail="user@example.com"
+          />
+        )}
+        
+        {/* Generate Wallet Modal */}
+        {showGenerateWalletModal && (
+          <GenerateWalletModal
+            onClose={() => setShowGenerateWalletModal(false)}
+            onComplete={(address) => {
+              setHasWallet(true);
+              setWalletAddress(address);
+              setShowGenerateWalletModal(false);
+              toast.success('Your crypto wallet has been created successfully!');
+            }}
+          />
+        )}
+        
+        <SupportButton />
+        <Toaster />
+      </div>
+    </ThemeProvider>
   );
 }
 

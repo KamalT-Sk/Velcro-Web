@@ -963,7 +963,7 @@ export function PaymentLinks() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-14 lg:pl-0">
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-900">Payment Links</h1>
           <p className="text-gray-500 text-sm">Create and manage payment links for your business</p>

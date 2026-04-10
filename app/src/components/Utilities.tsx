@@ -13,22 +13,16 @@ import {
   Users,
   MapPin,
   Search,
-  CreditCard,
-  Radio,
   Monitor,
-  Flame,
   Receipt,
-  Shield,
   Check,
   CheckCircle,
-  Gamepad2,
-  FileText,
   ArrowRight,
   Wallet,
   History,
-  RotateCcw,
   Lock,
-  Download
+  Download,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -472,7 +466,7 @@ export function Utilities() {
   const renderCategories = () => (
     <div className="space-y-6 animate-fade-in">
       {/* Header with Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-12 lg:pl-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pl-14 lg:pl-0">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Bills & Utilities</h1>
           <p className="text-gray-500 text-sm">Pay for airtime, data, electricity, and more</p>
@@ -1052,8 +1046,16 @@ export function Utilities() {
         {showPinModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isProcessing && setShowPinModal(false)} />
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-fade-in">
-              <div className="text-center mb-6">
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto p-6 animate-fade-in overflow-hidden">
+              {/* Close Button */}
+              <button 
+                onClick={() => !isProcessing && setShowPinModal(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+
+              <div className="text-center mb-6 pt-2">
                 <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Lock size={28} className="text-blue-600" />
                 </div>
@@ -1061,17 +1063,18 @@ export function Utilities() {
                 <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm payment</p>
               </div>
 
-              <div className="flex justify-center gap-3 mb-6">
+              <div className="flex justify-center gap-2 sm:gap-3 mb-6">
                 {pin.map((digit, index) => (
                   <input
                     key={index}
                     id={`pin-${index}`}
                     type="password"
                     maxLength={1}
+                    inputMode="numeric"
                     value={digit}
                     onChange={(e) => handlePinChange(index, e.target.value)}
                     onKeyDown={(e) => handlePinKeyDown(index, e)}
-                    className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    className="w-12 h-12 sm:w-14 sm:h-14 text-center text-2xl font-bold border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
                     disabled={isProcessing}
                   />
                 ))}

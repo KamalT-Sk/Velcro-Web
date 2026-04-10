@@ -50,9 +50,9 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
       {/* Mobile Toggle */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white shadow-lg rounded-xl border border-gray-100"
+        className="lg:hidden fixed top-3 left-3 z-50 w-10 h-10 flex items-center justify-center bg-white shadow-md rounded-lg border border-gray-100"
       >
-        {isMobileOpen ? <X size={20} className="text-gray-600" /> : <Menu size={20} className="text-gray-600" />}
+        {isMobileOpen ? <X size={18} className="text-gray-600" /> : <Menu size={18} className="text-gray-600" />}
       </button>
 
       {/* Sidebar */}
@@ -62,7 +62,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo Section */}
-        <div className="p-5 pl-16 lg:pl-5 border-b border-gray-100">
+        <div className="p-5 pl-14 lg:pl-5 border-b border-gray-100">
           <div className="flex items-center">
             <div className="h-8 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img src="logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
