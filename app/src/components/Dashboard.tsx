@@ -17,7 +17,8 @@ import {
   Wallet,
   LogOut,
   Link2,
-  Check
+  Check,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -26,6 +27,8 @@ import { DepositModal } from './DepositModal';
 import { WithdrawModal } from './WithdrawModal';
 import { TransactionDetailModal } from './TransactionDetailModal';
 import { ConvertModal } from './ConvertModal';
+import { SpendModal } from './SpendModal';
+import { SendUSDCModal } from './SendUSDCModal';
 import { SendMoneyLinkModal, type PaymentSendLink } from './SendMoneyLinkModal';
 import { SendMoneyLinksManager } from './SendMoneyLinksManager';
 import type { UserKYC } from '@/App';
@@ -99,6 +102,10 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showConvertModal, setShowConvertModal] = useState(false);
+  const [showSpendModal, setShowSpendModal] = useState(false);
+  const [showSendUSDCModal, setShowSendUSDCModal] = useState(false);
+  const [convertDefaults, setConvertDefaults] = useState<{ from?: string; to?: string }>({});
+  const [convertAllowed, setConvertAllowed] = useState<string[] | undefined>(undefined);
   const [showSendLinkModal, setShowSendLinkModal] = useState(false);
   const [showSendLinkManager, setShowSendLinkManager] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -156,6 +163,40 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
       description: `Converted ${fromCurrency} to ${toCurrency}`,
     };
     setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const handleSpendUSDC = (details: { amount: number; fee: number; bankName: string; accountNumber: string; accountName: string }) => {
+    const total = details.amount + details.fee;
+    setUsdcBalance(prev => prev - total);
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      type: 'withdrawal',
+      amount: details.amount,
+      currency: 'USDC',
+      to: `${details.accountName} - ${details.bankName}`,
+      date: 'Just now',
+      status: 'completed',
+      description: `Spent ${details.amount} USDC to bank account`,
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+    toast.success(`Spent $${details.amount.toLocaleString()} USDC to ${details.accountName}`);
+  };
+
+  const handleSendUSDC = (details: { amount: number; fee: number; method: 'velcro' | 'phone' | 'external'; recipient: string }) => {
+    const total = details.amount + details.fee;
+    setUsdcBalance(prev => prev - total);
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      type: 'send',
+      amount: details.amount,
+      currency: 'USDC',
+      to: details.recipient,
+      date: 'Just now',
+      status: 'completed',
+      description: details.method === 'external' ? 'Sent USDC to external Solana address' : 'Sent USDC to Velcro user',
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+    toast.success(`Sent $${details.amount.toLocaleString()} USDC`);
   };
 
   const handleCreateSendLink = (link: PaymentSendLink) => {
@@ -236,34 +277,34 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'receive':
-        return <Download size={16} className="text-white" strokeWidth={2.5} />;
+        return <Download size={18} className="text-emerald-600" strokeWidth={2} />;
       case 'send':
-        return <Send size={16} className="text-white" strokeWidth={2.5} />;
+        return <Send size={18} className="text-blue-600" strokeWidth={2} />;
       case 'convert':
-        return <RefreshCcw size={16} className="text-white" strokeWidth={2.5} />;
+        return <RefreshCcw size={18} className="text-purple-600" strokeWidth={2} />;
       case 'deposit':
-        return <Plus size={16} className="text-white" strokeWidth={2.5} />;
+        return <Plus size={18} className="text-emerald-600" strokeWidth={2} />;
       case 'withdrawal':
-        return <LogOut size={16} className="text-white" strokeWidth={2.5} />;
+        return <LogOut size={18} className="text-orange-600" strokeWidth={2} />;
       default:
-        return <Wallet size={16} className="text-white" strokeWidth={2.5} />;
+        return <Wallet size={18} className="text-gray-700" strokeWidth={2} />;
     }
   };
 
   const getTransactionBg = (type: string) => {
     switch (type) {
       case 'receive':
-        return 'bg-velcro-green';
+        return 'bg-emerald-50 border-emerald-100';
       case 'send':
-        return 'bg-velcro-navy';
+        return 'bg-blue-50 border-blue-100';
       case 'convert':
-        return 'bg-velcro-navy/80';
+        return 'bg-purple-50 border-purple-100';
       case 'deposit':
-        return 'bg-velcro-green/80';
+        return 'bg-emerald-50 border-emerald-100';
       case 'withdrawal':
-        return 'bg-velcro-navy/60';
+        return 'bg-orange-50 border-orange-100';
       default:
-        return 'bg-gray-600';
+        return 'bg-gray-100 border-gray-200';
     }
   };
 
@@ -339,7 +380,11 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
           </Button>
           <Button 
             className="bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl"
-            onClick={() => setShowConvertModal(true)}
+            onClick={() => {
+              setConvertDefaults({});
+              setConvertAllowed(undefined);
+              setShowConvertModal(true);
+            }}
           >
             <ArrowRightLeft size={18} className="mr-2" />
             Convert
@@ -493,30 +538,38 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
                 </div>
                 
                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Button 
                       variant="secondary" 
                       size="sm"
                       className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                      onClick={() => toast.info('Go to Crypto Hub to buy USDC')}
+                      onClick={() => {
+                        setConvertDefaults({ from: 'USDC', to: 'NGN' });
+                        setConvertAllowed(['USDC', 'NGN']);
+                        setShowConvertModal(true);
+                      }}
                     >
-                      <ArrowDownLeft size={16} className="mr-1.5" />
-                      Buy
+                      <ArrowRightLeft size={16} className="mr-1.5" />
+                      Convert
                     </Button>
                     <Button 
                       variant="secondary" 
                       size="sm"
                       className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
-                      onClick={() => toast.info('Go to Crypto Hub to sell USDC')}
+                      onClick={() => setShowSpendModal(true)}
                     >
-                      <ArrowUpRight size={16} className="mr-1.5" />
-                      Sell
+                      <CreditCard size={16} className="mr-1.5" />
+                      Spend
                     </Button>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-white/60">
-                    <span>Buy: ₦1,500</span>
-                    <span className="text-white/40">|</span>
-                    <span>Sell: ₦1,480</span>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm rounded-xl"
+                      onClick={() => setShowSendUSDCModal(true)}
+                    >
+                      <Send size={16} className="mr-1.5" />
+                      Send
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -559,7 +612,7 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
                 ${index !== transactions.length - 1 ? 'border-b border-gray-50' : ''}`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm ${getTransactionBg(tx.type)}`}>
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center border ${getTransactionBg(tx.type)}`}>
                   {getTransactionIcon(tx.type)}
                 </div>
                 <div>
@@ -612,9 +665,29 @@ export function Dashboard({ userKYC, velcroTag, velcroPoints, hasWallet = false,
       />
       <ConvertModal
         isOpen={showConvertModal}
-        onClose={() => setShowConvertModal(false)}
+        onClose={() => {
+          setShowConvertModal(false);
+          setConvertDefaults({});
+          setConvertAllowed(undefined);
+        }}
         balances={getBalances()}
         onConvert={handleConvert}
+        defaultFrom={convertDefaults.from}
+        defaultTo={convertDefaults.to}
+        allowedCurrencies={convertAllowed}
+      />
+      <SpendModal
+        isOpen={showSpendModal}
+        onClose={() => setShowSpendModal(false)}
+        usdcBalance={usdcBalance}
+        onSpend={handleSpendUSDC}
+      />
+      <SendUSDCModal
+        isOpen={showSendUSDCModal}
+        onClose={() => setShowSendUSDCModal(false)}
+        usdcBalance={usdcBalance}
+        velcroTag={velcroTag}
+        onSend={handleSendUSDC}
       />
       <SendMoneyLinkModal
         isOpen={showSendLinkModal}

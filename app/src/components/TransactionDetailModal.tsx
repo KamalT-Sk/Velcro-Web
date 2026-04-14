@@ -109,7 +109,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
 
   const handleWhatsAppSupport = () => {
     const message = `Hello Velcro Support, I need help with Transaction #${transaction.id.toString().padStart(8, '0')} - ${transaction.type} of ${transaction.currency === 'NGN' ? '₦' : '$'}${transaction.amount.toLocaleString()} on ${transaction.date}`;
-    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/2347035428475?text=${encodeURIComponent(message)}`, '_blank');
     toast.success('Opening WhatsApp...');
   };
 
@@ -271,7 +271,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction }: Transac
                 <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
                 <div className="text-left flex-1">
                   <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
-                  <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                  <p className="text-xs text-gray-500">+234 703 542 8475</p>
                 </div>
                 <ExternalLink size={14} className="text-gray-400" />
               </Button>

@@ -34,7 +34,7 @@ function App() {
   const [showKYC, setShowKYC] = useState(false);
   const [showWhatsAppSync, setShowWhatsAppSync] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [whatsAppNumber, setWhatsAppNumber] = useState<string | null>('+2348001234567'); // Default for demo
+  const [whatsAppNumber, setWhatsAppNumber] = useState<string | null>('+2347035428475'); // Default for demo
   const [velcroTag, setVelcroTag] = useState<string>('');
   const [velcroPoints] = useState<number>(2450);
   const [userKYC, setUserKYC] = useState<UserKYC>({
@@ -75,7 +75,10 @@ function App() {
 
   const handleAuthComplete = () => {
     setAuthState('authenticated');
-    setShowKYC(true);
+    // Only show KYC for users who haven't completed it yet
+    if (userKYC.tier === 'none') {
+      setShowKYC(true);
+    }
   };
 
   const handleKYCComplete = (kycData: UserKYC) => {
@@ -319,8 +322,8 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
 
           {step === 'complete' && (
             <div className="text-center py-8">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check size={40} className="text-green-600" />
+              <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Check size={40} className="text-gray-700" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Wallet Created!</h3>
               <p className="text-sm text-gray-500 mb-4">

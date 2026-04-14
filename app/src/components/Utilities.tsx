@@ -1056,8 +1056,8 @@ export function Utilities() {
               </button>
 
               <div className="text-center mb-6 pt-2">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock size={28} className="text-blue-600" />
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Lock size={28} className="text-gray-700" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
                 <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm payment</p>

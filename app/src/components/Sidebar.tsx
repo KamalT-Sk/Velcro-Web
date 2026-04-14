@@ -13,7 +13,11 @@ import {
   Shield,
   CreditCard,
   AtSign,
-  RotateCcw
+  RotateCcw,
+  ShieldCheck,
+  AlertTriangle,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { View, UserKYC } from '@/App';
@@ -155,37 +159,73 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
         {/* KYC Status */}
         {!isCollapsed && (
           <div className="px-4 py-3">
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Shield size={16} className={userKYC.tier !== 'none' ? 'text-velcro-green' : 'text-amber-500'} />
-                <span className={`text-xs font-medium ${userKYC.tier !== 'none' ? 'text-velcro-green' : 'text-amber-600'}`}>
-                  {userKYC.tier === 'none' ? 'KYC Required' : `KYC ${userKYC.tier.replace('tier', 'Tier ')}`}
-                </span>
+            {userKYC.tier === 'none' ? (
+              <div className="rounded-2xl border border-amber-200/70 bg-amber-50/60 p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-amber-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Shield size={20} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">KYC Required</p>
+                    <p className="text-xs text-amber-700/80 mt-0.5">Complete verification to unlock all features</p>
+                  </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="h-1.5 bg-amber-100 rounded-full mb-3 overflow-hidden">
+                  <div className="h-full w-0 bg-amber-500 rounded-full" />
+                </div>
+                
+                <Button 
+                  size="sm"
+                  className="w-full text-xs h-9 rounded-xl bg-amber-600 hover:bg-amber-700 text-white border-0"
+                  onClick={onKYCClick}
+                >
+                  Verify Now
+                  <ArrowRight size={14} className="ml-1.5" />
+                </Button>
               </div>
-              
-              {/* Progress Bar */}
-              <div className="h-1.5 bg-gray-200 rounded-full mb-3 overflow-hidden">
-                <div 
-                  className="h-full bg-velcro-green rounded-full transition-all duration-500"
-                  style={{ width: `${kycProgress}%` }}
-                />
+            ) : (
+              <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    {kycProgress === 100 ? (
+                      <ShieldCheck size={20} className="text-emerald-600" />
+                    ) : (
+                      <Sparkles size={20} className="text-emerald-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-900">
+                      {kycProgress === 100 ? 'Fully Verified' : `KYC ${userKYC.tier.replace('tier', 'Tier ')}`}
+                    </p>
+                    <p className="text-xs text-emerald-700/80 mt-0.5">
+                      Daily limit: ₦{userKYC.dailyLimit.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="h-1.5 bg-emerald-100 rounded-full mb-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                    style={{ width: `${kycProgress}%` }}
+                  />
+                </div>
+                
+                {kycProgress !== 100 && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs h-9 rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-100/60 hover:text-emerald-900 bg-white"
+                    onClick={onKYCClick}
+                  >
+                    Upgrade Tier
+                    <ArrowRight size={14} className="ml-1.5" />
+                  </Button>
+                )}
               </div>
-              
-              <p className="text-xs text-gray-500 mb-3">
-                {userKYC.tier === 'none' 
-                  ? 'Complete verification to unlock all features' 
-                  : `Daily limit: ₦${userKYC.dailyLimit.toLocaleString()}`}
-              </p>
-              
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="w-full text-xs h-8 border-gray-200 hover:bg-gray-100"
-                onClick={onKYCClick}
-              >
-                {userKYC.tier === 'none' ? 'Verify Now' : 'Upgrade Tier'}
-              </Button>
-            </div>
+            )}
           </div>
         )}
 

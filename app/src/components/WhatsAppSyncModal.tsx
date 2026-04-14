@@ -152,8 +152,8 @@ export function WhatsAppSyncModal({ onClose, onSync, currentNumber, userEmail }:
           {step === 'connected' && currentNumber && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check size={40} className="text-[#25D366]" />
+                <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Check size={40} className="text-gray-700" />
                 </div>
                 <h3 className="font-display font-semibold text-gray-900 mb-1">WhatsApp Active</h3>
                 <p className="text-gray-500 text-sm">Your WhatsApp is connected and ready</p>
@@ -440,8 +440,8 @@ export function WhatsAppSyncModal({ onClose, onSync, currentNumber, userEmail }:
           {/* Step: Success */}
           {step === 'success' && (
             <div className="text-center py-4">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check size={40} className="text-[#25D366]" />
+              <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-6">
+                <Check size={40} className="text-gray-700" />
               </div>
               <h3 className="font-display font-bold text-xl text-gray-900 mb-2">
                 {currentNumber ? 'WhatsApp Updated!' : 'WhatsApp Connected!'}

@@ -8,6 +8,9 @@ interface ConvertModalProps {
   onClose: () => void;
   balances: Record<string, number>;
   onConvert: (fromCurrency: string, toCurrency: string, amount: number) => void;
+  defaultFrom?: string;
+  defaultTo?: string;
+  allowedCurrencies?: string[];
 }
 
 interface Currency {
@@ -42,7 +45,7 @@ const currencySymbols: Record<string, string> = {
   USDC: '$',
 };
 
-export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertModalProps) {
+export function ConvertModal({ isOpen, onClose, balances, onConvert, defaultFrom, defaultTo, allowedCurrencies }: ConvertModalProps) {
   const [fromCurrency, setFromCurrency] = useState<string>('NGN');
   const [toCurrency, setToCurrency] = useState<string>('USD');
   const [amount, setAmount] = useState<string>('');
@@ -75,7 +78,7 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
   }, [showFromDropdown, showToDropdown]);
 
   // Available currencies based on balances
-  const availableCurrencies: Currency[] = useMemo(() => [
+  const allCurrencies: Currency[] = useMemo(() => [
     { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', logo: 'logos/ng.png', balance: balances.NGN || 0, type: 'fiat' },
     { code: 'USD', name: 'US Dollar', symbol: '$', logo: 'logos/us.png', balance: balances.USD || 0, type: 'fiat' },
     { code: 'EUR', name: 'Euro', symbol: '€', logo: 'logos/eu.png', balance: balances.EUR || 0, type: 'fiat' },
@@ -85,6 +88,13 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
     { code: 'ZAR', name: 'South African Rand', symbol: 'R', logo: 'logos/za.png', balance: balances.ZAR || 0, type: 'fiat' },
     { code: 'USDC', name: 'USD Coin', symbol: '$', logo: '/images/usdc-logo.png', balance: balances.USDC || 1250, type: 'crypto' },
   ], [balances]);
+
+  const availableCurrencies = useMemo(() => {
+    if (allowedCurrencies && allowedCurrencies.length > 0) {
+      return allCurrencies.filter(c => allowedCurrencies.includes(c.code));
+    }
+    return allCurrencies;
+  }, [allCurrencies, allowedCurrencies]);
 
   const fromCurrencyData = availableCurrencies.find(c => c.code === fromCurrency);
   const toCurrencyData = availableCurrencies.find(c => c.code === toCurrency);
@@ -207,6 +217,8 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
     setShowConfirm(false);
     setShowPin(false);
     setPin(['', '', '', '']);
+    setFromCurrency(defaultFrom || 'NGN');
+    setToCurrency(defaultTo || 'USD');
     onClose();
   };
 
@@ -234,8 +246,8 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
         <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center animate-scale-in">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check size={32} className="text-green-600" />
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+            <Check size={32} className="text-gray-700" />
           </div>
           <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Conversion Successful!</h2>
           <p className="text-gray-500">
@@ -441,11 +453,14 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
         </div>
         
         {/* Footer */}
-        <div className="p-5 border-t border-gray-100">
+        <div className="p-5 border-t border-gray-100 flex gap-3">
+          <Button variant="outline" onClick={handleClose} className="flex-1 rounded-xl h-12">
+            Cancel
+          </Button>
           <Button
             onClick={handleInitiateConvert}
             disabled={!amount || parseFloat(amount) <= 0 || !hasEnoughBalance || isConverting}
-            className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl disabled:opacity-50"
+            className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl disabled:opacity-50"
           >
             Convert Now
           </Button>
@@ -456,7 +471,7 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
           <div className="absolute inset-0 bg-white rounded-2xl z-10 flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-display font-semibold text-gray-900">Confirm Conversion</h3>
-              <button onClick={() => setShowConfirm(false)} className="p-2 hover:bg-gray-100 rounded-xl">
+              <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-xl">
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
@@ -497,8 +512,8 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
               </button>
             </div>
             <div className="flex-1 p-6 flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
               <div className="flex gap-3 mb-6">
@@ -517,8 +532,9 @@ export function ConvertModal({ isOpen, onClose, balances, onConvert }: ConvertMo
                 ))}
               </div>
             </div>
-            <div className="p-5 border-t border-gray-100">
-              <Button onClick={handleConvert} disabled={isConverting} className="w-full bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold h-12 rounded-xl">
+            <div className="p-5 border-t border-gray-100 flex gap-3">
+              <Button variant="outline" onClick={() => setShowPin(false)} disabled={isConverting} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={handleConvert} disabled={isConverting} className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl">
                 {isConverting ? (
                   <>
                     <RefreshCw size={18} className="animate-spin mr-2" />

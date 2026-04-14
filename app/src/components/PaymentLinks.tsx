@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { 
-  Link2, 
-  Copy, 
-  Plus, 
-  Image as ImageIcon, 
+import { useState, useMemo } from 'react';
+import {
+  Link2,
+  Copy,
+  Plus,
+  Image as ImageIcon,
   Check,
   Trash2,
   Edit2,
@@ -20,7 +20,15 @@ import {
   Calendar,
   Heart,
   ShoppingBag,
-  EyeOff
+  EyeOff,
+  Search,
+  Filter,
+  MoreHorizontal,
+  ArrowUpRight,
+  Wallet,
+  QrCode,
+  Share2,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -196,7 +204,6 @@ const initialLinks: PaymentLink[] = [
     totalCollected: 2850000,
     paymentCount: 47,
     payments: [
-      // Some public donors
       {
         id: 'd1',
         payerName: 'Fatima Hassan',
@@ -222,7 +229,6 @@ const initialLinks: PaymentLink[] = [
         reference: 'VEL-20240402-D002',
         isAnonymous: false,
       },
-      // Anonymous donors
       {
         id: 'd3',
         payerName: 'Anonymous',
@@ -258,20 +264,18 @@ const initialLinks: PaymentLink[] = [
         reference: 'VEL-20240405-D005',
         isAnonymous: false,
       },
-      // More anonymous donations
       ...Array.from({ length: 10 }, (_, i) => ({
         id: `da${i + 1}`,
         payerName: 'Anonymous',
         payerEmail: 'anonymous@velcro.app',
         amount: [50000, 25000, 100000, 75000, 150000][i % 5],
         currency: 'NGN' as const,
-        message: i % 4 === 0 ? ['Stay blessed', 'Keep helping', 'Supporting your mission'][i % 3] : undefined,
+        message: i % 4 === 0 ? (['Stay blessed', 'Keep helping', 'Supporting your mission'][i % 3]) : undefined,
         paidAt: new Date(Date.now() - (i + 5) * 86400000).toISOString(),
         status: 'completed' as const,
         reference: `VEL-2024040${i + 6}-DA${String(i + 1).padStart(3, '0')}`,
         isAnonymous: true,
       })),
-      // Regular donors
       ...Array.from({ length: 30 }, (_, i) => ({
         id: `dr${i + 1}`,
         payerName: `Donor ${i + 1}`,
@@ -289,6 +293,8 @@ const initialLinks: PaymentLink[] = [
 
 const availableCurrencies = ['NGN', 'USD', 'EUR', 'GBP', 'USDC'];
 
+type FilterTab = 'all' | 'active' | 'inactive';
+
 export function PaymentLinks() {
   const [links, setLinks] = useState<PaymentLink[]>(initialLinks);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -297,6 +303,8 @@ export function PaymentLinks() {
   const [editingLink, setEditingLink] = useState<PaymentLink | null>(null);
   const [previewLink, setPreviewLink] = useState<PaymentLink | null>(null);
   const [selectedLink, setSelectedLink] = useState<PaymentLink | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
@@ -322,6 +330,24 @@ export function PaymentLinks() {
     allowAnonymous: false,
     linkType: 'product',
   });
+
+  const filteredLinks = useMemo(() => {
+    return links.filter((link) => {
+      const matchesSearch =
+        link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        link.slug.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTab = activeTab === 'all' ? true : link.status === activeTab;
+      return matchesSearch && matchesTab;
+    });
+  }, [links, searchQuery, activeTab]);
+
+  const stats = useMemo(() => {
+    const totalLinks = links.length;
+    const activeLinks = links.filter((l) => l.status === 'active').length;
+    const totalCollected = links.reduce((sum, l) => sum + l.totalCollected, 0);
+    const totalPayments = links.reduce((sum, l) => sum + l.paymentCount, 0);
+    return { totalLinks, activeLinks, totalCollected, totalPayments };
+  }, [links]);
 
   const handleCreateLink = (e: React.FormEvent) => {
     e.preventDefault();
@@ -376,15 +402,24 @@ export function PaymentLinks() {
   const toggleCurrency = (currency: string) => {
     const current = formData.currencies;
     if (current.includes(currency)) {
-      setFormData({ ...formData, currencies: current.filter(c => c !== currency) });
+      setFormData({ ...formData, currencies: current.filter((c) => c !== currency) });
     } else {
       setFormData({ ...formData, currencies: [...current, currency] });
     }
   };
 
   const deleteLink = (id: string) => {
-    setLinks(links.filter(link => link.id !== id));
+    setLinks(links.filter((link) => link.id !== id));
     toast.success('Payment link deleted!');
+  };
+
+  const toggleStatus = (id: string) => {
+    setLinks(
+      links.map((link) =>
+        link.id === id ? { ...link, status: link.status === 'active' ? 'inactive' : 'active' } : link
+      )
+    );
+    toast.success('Status updated');
   };
 
   const handleEditLink = (link: PaymentLink) => {
@@ -409,7 +444,7 @@ export function PaymentLinks() {
     e.preventDefault();
     if (!editingLink) return;
 
-    const updatedLinks = links.map(link => {
+    const updatedLinks = links.map((link) => {
       if (link.id === editingLink.id) {
         return {
           ...link,
@@ -443,16 +478,18 @@ export function PaymentLinks() {
   const exportPayments = (link: PaymentLink) => {
     const csvContent = [
       ['Date', 'Name', 'Email', 'Phone', 'Amount', 'Currency', 'Message', 'Reference'].join(','),
-      ...link.payments.map(p => [
-        new Date(p.paidAt).toLocaleString(),
-        `"${p.payerName}"`,
-        p.payerEmail,
-        p.payerPhone || '',
-        p.amount,
-        p.currency,
-        `"${p.message || ''}"`,
-        p.reference,
-      ].join(',')),
+      ...link.payments.map((p) =>
+        [
+          new Date(p.paidAt).toLocaleString(),
+          `"${p.payerName}"`,
+          p.payerEmail,
+          p.payerPhone || '',
+          p.amount,
+          p.currency,
+          `"${p.message || ''}"`,
+          p.reference,
+        ].join(',')
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -470,11 +507,8 @@ export function PaymentLinks() {
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSelectedLink(null)}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
+        <div className="flex items-center gap-4 pl-14 lg:pl-0">
+          <button onClick={() => setSelectedLink(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ChevronLeft size={24} className="text-gray-600" />
           </button>
           <div>
@@ -485,7 +519,7 @@ export function PaymentLinks() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
                 <TrendingUp size={20} className="text-green-600" />
@@ -493,12 +527,13 @@ export function PaymentLinks() {
               <span className="text-gray-500 text-sm">Total Collected</span>
             </div>
             <p className="text-2xl font-display font-bold text-gray-900">
-              {currencySymbols[selectedLink.currencies[0]]}{selectedLink.totalCollected.toLocaleString()}
+              {currencySymbols[selectedLink.currencies[0]]}
+              {selectedLink.totalCollected.toLocaleString()}
             </p>
             <p className="text-xs text-gray-400 mt-1">{selectedLink.currencies[0]}</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Users size={20} className="text-blue-600" />
@@ -506,12 +541,10 @@ export function PaymentLinks() {
               <span className="text-gray-500 text-sm">Total Payments</span>
             </div>
             <p className="text-2xl font-display font-bold text-gray-900">{selectedLink.paymentCount}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {selectedLink.paymentCount === 1 ? 'payment' : 'payments'} received
-            </p>
+            <p className="text-xs text-gray-400 mt-1">{selectedLink.paymentCount === 1 ? 'payment' : 'payments'} received</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                 <Calendar size={20} className="text-purple-600" />
@@ -521,31 +554,24 @@ export function PaymentLinks() {
             <p className="text-2xl font-display font-bold text-gray-900">
               {new Date(selectedLink.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </p>
-            <p className="text-xs text-gray-400 mt-1">{selectedLink.status}</p>
+            <p className="text-xs text-gray-400 mt-1 capitalize">{selectedLink.status}</p>
           </div>
         </div>
 
         {/* Link Info */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Payment Link</p>
               <div className="flex items-center gap-3">
                 <span className="text-gray-900 font-medium">usevelcro.com/{selectedLink.slug}</span>
-                <button
-                  onClick={() => copyLink(selectedLink.slug)}
-                  className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                >
+                <button onClick={() => copyLink(selectedLink.slug)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
                   <Copy size={16} className="text-gray-500" />
                 </button>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => exportPayments(selectedLink)}
-                className="rounded-xl"
-              >
+              <Button variant="outline" onClick={() => exportPayments(selectedLink)} className="rounded-xl">
                 <Download size={18} className="mr-2" />
                 Export CSV
               </Button>
@@ -568,13 +594,13 @@ export function PaymentLinks() {
                 <span className="font-medium text-sm">Anonymous Payments Enabled</span>
               </div>
               <p className="text-xs text-amber-600">
-                {selectedLink.payments.filter(p => p.isAnonymous).length} of {selectedLink.payments.length} payments were made anonymously
+                {selectedLink.payments.filter((p) => p.isAnonymous).length} of {selectedLink.payments.length} payments were made anonymously
               </p>
             </div>
           )}
 
           {selectedLink.payments.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-soft">
               <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Users size={32} className="text-gray-400" />
               </div>
@@ -584,32 +610,23 @@ export function PaymentLinks() {
           ) : (
             <div className="space-y-3">
               {selectedLink.payments.map((payment) => (
-                <div
-                  key={payment.id}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-soft transition-shadow"
-                >
+                <div key={payment.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-soft transition-shadow">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     {/* Payer Info */}
                     <div className="flex items-start gap-4">
                       {payment.isAnonymous ? (
-                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center">
                           <EyeOff size={20} className="text-gray-500" />
                         </div>
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-velcro-green to-velcro-navy rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-semibold text-lg">
                           {payment.payerName.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">
-                            {payment.isAnonymous ? 'Anonymous' : payment.payerName}
-                          </h3>
-                          {payment.isAnonymous && (
-                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              Hidden
-                            </span>
-                          )}
+                          <h3 className="font-semibold text-gray-900">{payment.isAnonymous ? 'Anonymous' : payment.payerName}</h3>
+                          {payment.isAnonymous && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Hidden</span>}
                         </div>
                         {!payment.isAnonymous && (
                           <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mt-1">
@@ -641,34 +658,28 @@ export function PaymentLinks() {
                     <div className="flex items-center gap-6 lg:text-right">
                       <div>
                         <p className="text-lg font-display font-bold text-gray-900">
-                          {currencySymbols[payment.currency]}{payment.amount.toLocaleString()}
+                          {currencySymbols[payment.currency]}
+                          {payment.amount.toLocaleString()}
                         </p>
                         <p className="text-xs text-gray-500">{payment.currency}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-600">
-                          {new Date(payment.paidAt).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
+                          {new Date(payment.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {new Date(payment.paidAt).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit'
-                          })}
+                          {new Date(payment.paidAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium
-                        ${payment.status === 'completed' ? 'bg-green-100 text-green-700' : 
-                          payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
-                          'bg-red-100 text-red-700'}`}>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium
+                        ${payment.status === 'completed' ? 'bg-green-100 text-green-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}
+                      >
                         {payment.status}
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Reference */}
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-400">Reference: {payment.reference}</p>
@@ -687,15 +698,12 @@ export function PaymentLinks() {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-soft animate-slide-down">
         <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => setShowCreateForm(false)}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
+          <button onClick={() => setShowCreateForm(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ChevronLeft size={24} className="text-gray-600" />
           </button>
           <h2 className="text-lg font-display font-semibold text-gray-900">Create Payment Link</h2>
         </div>
-        
+
         <form onSubmit={handleCreateLink} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -742,40 +750,34 @@ export function PaymentLinks() {
                 type="button"
                 onClick={() => setFormData({ ...formData, linkType: 'product' })}
                 className={`p-4 rounded-xl border-2 text-left transition-all
-                  ${formData.linkType === 'product'
-                    ? 'border-velcro-green bg-velcro-green/5'
-                    : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  ${formData.linkType === 'product' ? 'border-velcro-green bg-velcro-green/5' : 'border-gray-200 hover:border-gray-300'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center
-                    ${formData.linkType === 'product' ? 'bg-velcro-green text-velcro-navy' : 'bg-gray-100 text-gray-500'}`}>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center
+                    ${formData.linkType === 'product' ? 'bg-velcro-green text-velcro-navy' : 'bg-gray-100 text-gray-500'}`}
+                  >
                     <ShoppingBag size={20} />
                   </div>
-                  <span className={`font-semibold ${formData.linkType === 'product' ? 'text-gray-900' : 'text-gray-600'}`}>
-                    Product / Service
-                  </span>
+                  <span className={`font-semibold ${formData.linkType === 'product' ? 'text-gray-900' : 'text-gray-600'}`}>Product / Service</span>
                 </div>
                 <p className="text-xs text-gray-500">Sell products or services</p>
               </button>
-              
+
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, linkType: 'donation' })}
                 className={`p-4 rounded-xl border-2 text-left transition-all
-                  ${formData.linkType === 'donation'
-                    ? 'border-velcro-green bg-velcro-green/5'
-                    : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  ${formData.linkType === 'donation' ? 'border-velcro-green bg-velcro-green/5' : 'border-gray-200 hover:border-gray-300'}`}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center
-                    ${formData.linkType === 'donation' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'}`}>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center
+                    ${formData.linkType === 'donation' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'}`}
+                  >
                     <Heart size={20} />
                   </div>
-                  <span className={`font-semibold ${formData.linkType === 'donation' ? 'text-gray-900' : 'text-gray-600'}`}>
-                    Donation / Cause
-                  </span>
+                  <span className={`font-semibold ${formData.linkType === 'donation' ? 'text-gray-900' : 'text-gray-600'}`}>Donation / Cause</span>
                 </div>
                 <p className="text-xs text-gray-500">Collect donations or support</p>
               </button>
@@ -847,9 +849,7 @@ export function PaymentLinks() {
                 <Label>Amount</Label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                      {currencySymbols[formData.currencies[0]]}
-                    </span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">{currencySymbols[formData.currencies[0]]}</span>
                     <Input
                       type="number"
                       placeholder="0.00"
@@ -862,15 +862,17 @@ export function PaymentLinks() {
                     value={formData.currencies[0] || 'NGN'}
                     onChange={(e) => {
                       const newCurrency = e.target.value;
-                      setFormData({ 
-                        ...formData, 
-                        currencies: [newCurrency, ...formData.currencies.filter(c => c !== newCurrency)]
+                      setFormData({
+                        ...formData,
+                        currencies: [newCurrency, ...formData.currencies.filter((c) => c !== newCurrency)],
                       });
                     }}
                     className="px-4 py-2 border border-gray-200 rounded-xl bg-white focus:border-velcro-green focus:ring-2 focus:ring-velcro-green/20 outline-none"
                   >
-                    {availableCurrencies.map(c => (
-                      <option key={c} value={c}>{c}</option>
+                    {availableCurrencies.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -887,14 +889,9 @@ export function PaymentLinks() {
                   type="button"
                   onClick={() => toggleCurrency(currency)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all
-                    ${formData.currencies.includes(currency)
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                    ${formData.currencies.includes(currency) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                 >
-                  {formData.currencies.includes(currency) && (
-                    <Check size={14} className="inline mr-1" />
-                  )}
+                  {formData.currencies.includes(currency) && <Check size={14} className="inline mr-1" />}
                   {currency}
                 </button>
               ))}
@@ -910,47 +907,30 @@ export function PaymentLinks() {
                   <p className="font-medium text-sm text-gray-900">Email Address</p>
                   <p className="text-gray-500 text-xs">Required for sending receipt</p>
                 </div>
-                <Switch
-                  checked={formData.collectEmail}
-                  onCheckedChange={(checked) => setFormData({ ...formData, collectEmail: checked })}
-                />
+                <Switch checked={formData.collectEmail} onCheckedChange={(checked) => setFormData({ ...formData, collectEmail: checked })} />
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
                   <p className="font-medium text-sm text-gray-900">Phone Number</p>
                   <p className="text-gray-500 text-xs">For contact purposes</p>
                 </div>
-                <Switch
-                  checked={formData.collectPhone}
-                  onCheckedChange={(checked) => setFormData({ ...formData, collectPhone: checked })}
-                />
+                <Switch checked={formData.collectPhone} onCheckedChange={(checked) => setFormData({ ...formData, collectPhone: checked })} />
               </div>
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
                   <p className="font-medium text-sm text-gray-900">Customer Message</p>
                   <p className="text-gray-500 text-xs">Allow customers to add a note</p>
                 </div>
-                <Switch
-                  checked={formData.collectMessage}
-                  onCheckedChange={(checked) => setFormData({ ...formData, collectMessage: checked })}
-                />
+                <Switch checked={formData.collectMessage} onCheckedChange={(checked) => setFormData({ ...formData, collectMessage: checked })} />
               </div>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowCreateForm(false)}
-              className="flex-1 rounded-xl"
-            >
+            <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)} className="flex-1 rounded-xl">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl"
-            >
+            <Button type="submit" className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl">
               Create Link
             </Button>
           </div>
@@ -968,140 +948,280 @@ export function PaymentLinks() {
           <h1 className="text-2xl font-display font-bold text-gray-900">Payment Links</h1>
           <p className="text-gray-500 text-sm">Create and manage payment links for your business</p>
         </div>
-        <Button 
-          onClick={() => setShowCreateForm(true)}
-          className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl"
-        >
+        <Button onClick={() => setShowCreateForm(true)} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl h-11 px-5">
           <Plus size={18} className="mr-2" />
           Create Link
         </Button>
       </div>
 
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Link2 size={20} className="text-indigo-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Links</span>
+          </div>
+          <p className="text-2xl font-display font-bold text-gray-900">{stats.totalLinks}</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.activeLinks} active</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+              <Wallet size={20} className="text-green-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Collected</span>
+          </div>
+          <p className="text-2xl font-display font-bold text-gray-900">₦{(stats.totalCollected / 1000000).toFixed(1)}M</p>
+          <p className="text-xs text-gray-500 mt-1">Across all links</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Users size={20} className="text-blue-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Payments</span>
+          </div>
+          <p className="text-2xl font-display font-bold text-gray-900">{stats.totalPayments}</p>
+          <p className="text-xs text-gray-500 mt-1">Total transactions</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <ArrowUpRight size={20} className="text-purple-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Conversion</span>
+          </div>
+          <p className="text-2xl font-display font-bold text-gray-900">
+            {stats.totalLinks > 0 ? Math.round((stats.totalPayments / stats.totalLinks) * 10) : 0}%
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Est. conversion</p>
+        </div>
+      </div>
+
+      {/* Search + Filters */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-soft">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search links by title or slug..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-xl h-11"
+            />
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+            {(['all', 'active', 'inactive'] as FilterTab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all
+                  ${activeTab === tab ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                {tab === 'all' && `All Links (${links.length})`}
+                {tab === 'active' && `Active (${links.filter((l) => l.status === 'active').length})`}
+                {tab === 'inactive' && `Inactive (${links.filter((l) => l.status === 'inactive').length})`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Links List */}
       <div className="space-y-4">
-        {links.length === 0 ? (
+        {filteredLinks.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-soft">
-            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Link2 size={32} className="text-gray-400" />
+            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <Filter size={36} className="text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No payment links yet</h3>
-            <p className="text-gray-500 text-sm mb-4">Create your first payment link to start receiving payments</p>
-            <Button 
-              onClick={() => setShowCreateForm(true)}
-              className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl"
-            >
-              <Plus size={18} className="mr-2" />
-              Create Link
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {links.length === 0 ? 'No payment links yet' : 'No links found'}
+            </h3>
+            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              {links.length === 0
+                ? 'Create your first payment link to start receiving payments from customers anywhere.'
+                : 'Try adjusting your search or filter to find what you\'re looking for.'}
+            </p>
+            <Button onClick={() => (links.length === 0 ? setShowCreateForm(true) : setSearchQuery(''))} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl">
+              {links.length === 0 ? (
+                <>
+                  <Plus size={18} className="mr-2" />
+                  Create Link
+                </>
+              ) : (
+                'Clear Filters'
+              )}
             </Button>
           </div>
         ) : (
-          links.map((link) => (
-            <div 
+          filteredLinks.map((link) => (
+            <div
               key={link.id}
-              className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-soft transition-shadow"
+              className={`group bg-white rounded-2xl border border-gray-100 p-0 overflow-hidden hover:shadow-lg transition-all duration-300
+                ${link.status === 'inactive' ? 'opacity-80' : ''}`}
             >
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h3 className="font-semibold text-gray-900">{link.title}</h3>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${link.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                      {link.status}
-                    </span>
-                    {link.linkType === 'donation' && (
-                      <span className="px-2.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium flex items-center gap-1">
-                        <Heart size={12} />
-                        Donation
-                      </span>
-                    )}
-                    {link.allowAnonymous && (
-                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-medium flex items-center gap-1">
-                        <EyeOff size={12} />
-                        Anonymous OK
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-500 text-sm mb-3">{link.description}</p>
-                  
-                  <div className="flex flex-wrap items-center gap-3 text-sm">
-                    <div className="flex items-center gap-1.5 text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
-                      <ExternalLink size={14} />
-                      <span className="font-medium">usevelcro.com/{link.slug}</span>
-                    </div>
-                    <span className="text-gray-300">|</span>
-                    <span className="text-gray-600">
-                      {link.amountType === 'fixed' && link.amount !== null
-                        ? `${currencySymbols[link.currencies[0]]}${link.amount.toLocaleString()}` 
-                        : 'Open amount'}
-                    </span>
-                    <span className="text-gray-300">|</span>
-                    <div className="flex gap-1">
-                      {link.currencies.map(c => (
-                        <span key={c} className="px-2 py-0.5 bg-gray-100 rounded-lg text-xs font-medium">{c}</span>
-                      ))}
-                    </div>
-                  </div>
+              {/* Top colored stripe */}
+              <div
+                className={`h-1.5 w-full ${
+                  link.linkType === 'donation' ? 'bg-gradient-to-r from-red-400 to-pink-500' : 'bg-gradient-to-r from-velcro-green to-emerald-500'
+                }`}
+              />
 
-                  {/* Payment Stats */}
-                  {link.paymentCount > 0 && (
-                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 flex-wrap">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users size={16} className="text-blue-600" />
-                        <span className="text-gray-600">{link.paymentCount} payments</span>
+              <div className="p-5">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                  {/* Left: Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <h3 className="font-semibold text-gray-900 text-lg">{link.title}</h3>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-medium
+                        ${link.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
+                      >
+                        {link.status}
+                      </span>
+                      {link.linkType === 'donation' && (
+                        <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-medium flex items-center gap-1">
+                          <Heart size={10} />
+                          Donation
+                        </span>
+                      )}
+                      {link.allowAnonymous && (
+                        <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs font-medium flex items-center gap-1">
+                          <EyeOff size={10} />
+                          Anonymous
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2">{link.description}</p>
+
+                    {/* URL + Amount row */}
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <ExternalLink size={14} className="text-gray-400" />
+                        <span className="text-sm font-medium text-gray-700">usevelcro.com/{link.slug}</span>
+                        <button
+                          onClick={() => copyLink(link.slug)}
+                          className="p-1 hover:bg-gray-200 rounded-md transition-colors ml-1"
+                          title="Copy link"
+                        >
+                          <Copy size={14} className="text-gray-500" />
+                        </button>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <TrendingUp size={16} className="text-green-600" />
-                        <span className="font-medium text-gray-900">
-                          {currencySymbols[link.currencies[0]]}{link.totalCollected.toLocaleString()} collected
+
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <span className="text-sm font-medium text-gray-700">
+                          {link.amountType === 'fixed' && link.amount !== null
+                            ? `${currencySymbols[link.currencies[0]]}${link.amount.toLocaleString()}`
+                            : 'Open amount'}
                         </span>
                       </div>
-                      {link.allowAnonymous && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <EyeOff size={16} className="text-amber-600" />
-                          <span className="text-gray-600">
-                            {link.payments.filter(p => p.isAnonymous).length} anonymous
+
+                      <div className="flex gap-1">
+                        {link.currencies.map((c) => (
+                          <span key={c} className="px-2 py-1 bg-gray-100 rounded-md text-xs font-semibold text-gray-600">
+                            {c}
                           </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Payment Stats */}
+                    {link.paymentCount > 0 ? (
+                      <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <Users size={14} className="text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{link.paymentCount}</p>
+                            <p className="text-xs text-gray-500">Payments</p>
+                          </div>
                         </div>
-                      )}
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                            <Wallet size={14} className="text-green-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {currencySymbols[link.currencies[0]]}
+                              {link.totalCollected.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500">Collected</p>
+                          </div>
+                        </div>
+                        {link.allowAnonymous && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                              <EyeOff size={14} className="text-amber-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{link.payments.filter((p) => p.isAnonymous).length}</p>
+                              <p className="text-xs text-gray-500">Anonymous</p>
+                            </div>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setSelectedLink(link)}
+                          className="text-sm text-velcro-navy font-semibold hover:underline flex items-center gap-1"
+                        >
+                          View details
+                          <ArrowUpRight size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Clock size={14} />
+                        <span>No payments yet. Share your link to get started.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Actions */}
+                  <div className="flex lg:flex-col items-center lg:items-end gap-2">
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={() => setSelectedLink(link)}
-                        className="text-sm text-velcro-navy font-medium hover:underline"
+                        onClick={() => copyLink(link.slug)}
+                        className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+                        title="Copy link"
                       >
-                        View details →
+                        <Copy size={18} className="text-gray-500" />
+                      </button>
+                      <button
+                        className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+                        title="Preview"
+                        onClick={() => handlePreview(link)}
+                      >
+                        <Eye size={18} className="text-gray-500" />
+                      </button>
+                      <button
+                        className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
+                        title="Edit"
+                        onClick={() => handleEditLink(link)}
+                      >
+                        <Edit2 size={18} className="text-gray-500" />
+                      </button>
+                      <button
+                        onClick={() => deleteLink(link.id)}
+                        className="p-2.5 hover:bg-red-50 rounded-xl transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} className="text-red-500" />
                       </button>
                     </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => copyLink(link.slug)}
-                    className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
-                    title="Copy link"
-                  >
-                    <Copy size={18} className="text-gray-500" />
-                  </button>
-                  <button 
-                    className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
-                    title="Preview"
-                    onClick={() => handlePreview(link)}
-                  >
-                    <Eye size={18} className="text-gray-500" />
-                  </button>
-                  <button 
-                    className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors"
-                    title="Edit"
-                    onClick={() => handleEditLink(link)}
-                  >
-                    <Edit2 size={18} className="text-gray-500" />
-                  </button>
-                  <button 
-                    onClick={() => deleteLink(link.id)}
-                    className="p-2.5 hover:bg-red-50 rounded-xl transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 size={18} className="text-red-500" />
-                  </button>
+                    <button
+                      onClick={() => toggleStatus(link.id)}
+                      className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors mt-0 lg:mt-1
+                        ${link.status === 'active' ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                      {link.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1112,19 +1232,22 @@ export function PaymentLinks() {
       {/* Edit Form Modal */}
       {showEditForm && editingLink && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in shadow-2xl">
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-display font-semibold text-gray-900">Edit Payment Link</h2>
                 <button
-                  onClick={() => { setShowEditForm(false); setEditingLink(null); }}
+                  onClick={() => {
+                    setShowEditForm(false);
+                    setEditingLink(null);
+                  }}
                   className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   <X size={20} className="text-gray-500" />
                 </button>
               </div>
             </div>
-            
+
             <form onSubmit={handleUpdateLink} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -1171,28 +1294,18 @@ export function PaymentLinks() {
                     type="button"
                     onClick={() => setFormData({ ...formData, amountType: 'fixed' })}
                     className={`flex-1 p-4 rounded-xl border-2 text-center transition-all
-                      ${formData.amountType === 'fixed'
-                        ? 'border-velcro-green bg-velcro-green/5'
-                        : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      ${formData.amountType === 'fixed' ? 'border-velcro-green bg-velcro-green/5' : 'border-gray-200 hover:border-gray-300'}`}
                   >
-                    <p className={`font-semibold ${formData.amountType === 'fixed' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      Fixed Amount
-                    </p>
+                    <p className={`font-semibold ${formData.amountType === 'fixed' ? 'text-gray-900' : 'text-gray-600'}`}>Fixed Amount</p>
                     <p className="text-xs text-gray-500 mt-1">Set a specific price</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, amountType: 'open', amount: '' })}
                     className={`flex-1 p-4 rounded-xl border-2 text-center transition-all
-                      ${formData.amountType === 'open'
-                        ? 'border-velcro-green bg-velcro-green/5'
-                        : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      ${formData.amountType === 'open' ? 'border-velcro-green bg-velcro-green/5' : 'border-gray-200 hover:border-gray-300'}`}
                   >
-                    <p className={`font-semibold ${formData.amountType === 'open' ? 'text-gray-900' : 'text-gray-600'}`}>
-                      Open Amount
-                    </p>
+                    <p className={`font-semibold ${formData.amountType === 'open' ? 'text-gray-900' : 'text-gray-600'}`}>Open Amount</p>
                     <p className="text-xs text-gray-500 mt-1">Customer decides</p>
                   </button>
                 </div>
@@ -1202,9 +1315,7 @@ export function PaymentLinks() {
                     <Label>Amount</Label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                          {currencySymbols[formData.currencies[0]]}
-                        </span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">{currencySymbols[formData.currencies[0]]}</span>
                         <Input
                           type="number"
                           placeholder="0.00"
@@ -1227,14 +1338,9 @@ export function PaymentLinks() {
                       type="button"
                       onClick={() => toggleCurrency(currency)}
                       className={`px-4 py-2 rounded-xl text-sm font-medium transition-all
-                        ${formData.currencies.includes(currency)
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                        ${formData.currencies.includes(currency) ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                     >
-                      {formData.currencies.includes(currency) && (
-                        <Check size={14} className="inline mr-1" />
-                      )}
+                      {formData.currencies.includes(currency) && <Check size={14} className="inline mr-1" />}
                       {currency}
                     </button>
                   ))}
@@ -1245,15 +1351,15 @@ export function PaymentLinks() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => { setShowEditForm(false); setEditingLink(null); }}
+                  onClick={() => {
+                    setShowEditForm(false);
+                    setEditingLink(null);
+                  }}
                   className="flex-1 rounded-xl"
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl"
-                >
+                <Button type="submit" className="flex-1 bg-velcro-green hover:bg-velcro-green-dark text-velcro-navy font-semibold rounded-xl">
                   Save Changes
                 </Button>
               </div>
@@ -1265,35 +1371,35 @@ export function PaymentLinks() {
       {/* Preview Modal */}
       {showPreview && previewLink && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden animate-fade-in shadow-2xl">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">Link Preview</h3>
               <button
-                onClick={() => { setShowPreview(false); setPreviewLink(null); }}
+                onClick={() => {
+                  setShowPreview(false);
+                  setPreviewLink(null);
+                }}
                 className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
               >
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
-            
+
             <div className="p-6">
               {/* Preview Card */}
               <div className="bg-gradient-to-br from-velcro-navy to-blue-900 rounded-2xl p-6 text-white mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                  {previewLink.linkType === 'donation' ? (
-                    <Heart size={24} className="text-red-400" />
-                  ) : (
-                    <ShoppingBag size={24} className="text-velcro-green" />
-                  )}
+                  {previewLink.linkType === 'donation' ? <Heart size={24} className="text-red-400" /> : <ShoppingBag size={24} className="text-velcro-green" />}
                   <span className="text-sm text-white/70 capitalize">{previewLink.linkType}</span>
                 </div>
-                
+
                 <h2 className="text-xl font-bold mb-2">{previewLink.title}</h2>
                 <p className="text-white/70 text-sm mb-4">{previewLink.description || 'No description'}</p>
-                
+
                 {previewLink.amountType === 'fixed' && previewLink.amount ? (
                   <div className="text-3xl font-bold">
-                    {currencySymbols[previewLink.currencies[0]]}{previewLink.amount.toLocaleString()}
+                    {currencySymbols[previewLink.currencies[0]]}
+                    {previewLink.amount.toLocaleString()}
                   </div>
                 ) : (
                   <div className="text-lg text-white/70">Enter any amount</div>
@@ -1303,21 +1409,21 @@ export function PaymentLinks() {
               {/* Customer Form Preview */}
               <div className="space-y-3">
                 <p className="text-sm text-gray-500 mb-2">Customer will see:</p>
-                
+
                 {previewLink.collectEmail && (
                   <div className="p-3 bg-gray-50 rounded-xl">
                     <Label className="text-xs text-gray-500">Email Address</Label>
                     <Input disabled placeholder="customer@example.com" className="mt-1 bg-white" />
                   </div>
                 )}
-                
+
                 {previewLink.collectPhone && (
                   <div className="p-3 bg-gray-50 rounded-xl">
                     <Label className="text-xs text-gray-500">Phone Number</Label>
                     <Input disabled placeholder="+234 801 234 5678" className="mt-1 bg-white" />
                   </div>
                 )}
-                
+
                 {previewLink.collectMessage && (
                   <div className="p-3 bg-gray-50 rounded-xl">
                     <Label className="text-xs text-gray-500">Message (Optional)</Label>
@@ -1325,9 +1431,7 @@ export function PaymentLinks() {
                   </div>
                 )}
 
-                <Button className="w-full bg-velcro-green text-velcro-navy font-semibold rounded-xl mt-4">
-                  Pay Now
-                </Button>
+                <Button className="w-full bg-velcro-green text-velcro-navy font-semibold rounded-xl mt-4">Pay Now</Button>
               </div>
 
               <div className="mt-4 pt-4 border-t text-center">

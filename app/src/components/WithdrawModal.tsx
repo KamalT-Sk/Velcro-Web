@@ -609,8 +609,8 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
               {tagVerified && recipientName && (
                 <div className="p-4 bg-green-50 rounded-xl border border-green-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <User size={20} className="text-green-600" />
+                    <div className="w-10 h-10 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center">
+                      <User size={20} className="text-gray-700" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Recipient Name</p>
@@ -826,8 +826,8 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
               </button>
             </div>
             <div className="flex-1 p-6 flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
               <div className="flex gap-3 mb-6">
@@ -869,8 +869,8 @@ export function WithdrawModal({ isOpen, onClose, userKYC, velcroTag }: WithdrawM
               </button>
             </div>
             <div className="flex-1 p-6 flex flex-col items-center justify-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <Check size={40} className="text-green-600" />
+              <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
+                <Check size={40} className="text-gray-700" />
               </div>
               <p className="text-2xl font-bold text-gray-900 mb-2">
                 {withdrawMethod === 'link' ? 'Link Ready!' : 'Transfer Complete!'}

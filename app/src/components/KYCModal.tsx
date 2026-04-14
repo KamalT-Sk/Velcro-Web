@@ -465,8 +465,8 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center gap-4 relative">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
-              <User size={28} className="text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <User size={28} className="text-gray-700" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -486,14 +486,14 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
+                <div className="w-5 h-5 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <Check size={12} className="text-gray-700" />
                 </div>
                 <span className="text-xs text-gray-600">Up to ₦10M/day</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
+                <div className="w-5 h-5 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <Check size={12} className="text-gray-700" />
                 </div>
                 <span className="text-xs text-gray-600">BVN Required</span>
               </div>
@@ -508,8 +508,8 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-velcro-navy/5 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center gap-4 relative">
-            <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy to-blue-900 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-velcro-navy/30 group-hover:scale-105 transition-transform">
-              <Building2 size={28} className="text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <Building2 size={28} className="text-gray-700" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -528,14 +528,14 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
+                <div className="w-5 h-5 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <Check size={12} className="text-gray-700" />
                 </div>
                 <span className="text-xs text-gray-600">Up to ₦100M/day</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check size={12} className="text-green-600" />
+                <div className="w-5 h-5 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <Check size={12} className="text-gray-700" />
                 </div>
                 <span className="text-xs text-gray-600">CAC Required</span>
               </div>
@@ -1764,8 +1764,8 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
     if (!completedKYCData) {
       return (
         <div className="text-center py-6 sm:py-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 sm:mb-6">
-            <Check size={32} className="text-green-600" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-5 sm:mb-6">
+            <Check size={32} className="text-gray-700" />
           </div>
           <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">Success!</h2>
           <p className="text-gray-500 mb-6">Your verification has been submitted.</p>

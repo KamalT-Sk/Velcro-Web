@@ -499,7 +499,7 @@ export function Cards() {
 
   const handleWhatsAppSupport = (tx: CardTransaction) => {
     const message = `Hello Support, I need help with Card Transaction #${tx.id.toString().padStart(8, '0')} - $${tx.amount.toFixed(2)} at ${tx.merchant} on ${tx.date}`;
-    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/2347035428475?text=${encodeURIComponent(message)}`, '_blank');
     toast.success('Opening WhatsApp...');
   };
 
@@ -1740,7 +1740,7 @@ export function Cards() {
                     <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3" />
                     <div className="text-left flex-1">
                       <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
-                      <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                      <p className="text-xs text-gray-500">+234 703 542 8475</p>
                     </div>
                     <ExternalLink size={14} className="text-gray-400" />
                   </Button>
@@ -2017,8 +2017,8 @@ export function Cards() {
             <div className="p-5 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-velcro-green/20 rounded-xl flex items-center justify-center">
-                    <Lock size={20} className="text-velcro-green" />
+                  <div className="w-10 h-10 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    <Lock size={20} className="text-gray-700" />
                   </div>
                   <div>
                     <h2 className="text-lg font-display font-bold text-gray-900">Enter PIN</h2>

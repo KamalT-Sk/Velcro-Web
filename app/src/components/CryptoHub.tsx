@@ -730,14 +730,14 @@ Thank you.`;
                 <button
                   onClick={() => {
                     const message = `Hello Velcro Support, I need help with my crypto transaction (Ref: ${tx.reference}). Amount: ${tx.amount} ${tx.token}, Type: ${tx.type.toUpperCase()}, Status: ${tx.status}.`;
-                    window.open(`https://wa.me/2348001234567?text=${encodeURIComponent(message)}`, '_blank');
+                    window.open(`https://wa.me/2347035428475?text=${encodeURIComponent(message)}`, '_blank');
                   }}
                   className="w-full flex items-center px-4 py-3 border border-green-200 hover:bg-green-50 hover:border-green-300 rounded-xl transition-colors"
                 >
                   <img src="images/whatsapp-logo.png" alt="WhatsApp" className="w-5 h-5 mr-3 object-contain" />
                   <div className="text-left flex-1">
                     <span className="text-sm font-medium text-gray-900">WhatsApp Support</span>
-                    <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                    <p className="text-xs text-gray-500">+234 703 542 8475</p>
                   </div>
                   <ExternalLink size={14} className="text-gray-400" />
                 </button>
@@ -1608,8 +1608,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
@@ -1681,8 +1681,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
@@ -1754,8 +1754,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
@@ -1829,8 +1829,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowBuyPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
@@ -1904,8 +1904,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSellPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>
@@ -1979,8 +1979,8 @@ Thank you.`;
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowSendPin(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <Lock size={28} className="text-gray-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Enter PIN</h3>
               <p className="text-gray-500 text-sm mt-1">Enter your 4-digit PIN to confirm</p>

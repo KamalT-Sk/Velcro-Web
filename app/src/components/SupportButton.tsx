@@ -12,7 +12,7 @@ export function SupportButton() {
   };
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/2348001234567', '_blank');
+    window.open('https://wa.me/2347035428475', '_blank');
     toast.success('Opening WhatsApp...');
     setIsOpen(false);
   };
@@ -76,7 +76,7 @@ export function SupportButton() {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">WhatsApp</p>
-                  <p className="text-xs text-gray-500">+234 800 123 4567</p>
+                  <p className="text-xs text-gray-500">+234 703 542 8475</p>
                 </div>
                 <ExternalLink size={16} className="text-gray-400" />
               </button>

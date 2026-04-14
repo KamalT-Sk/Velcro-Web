@@ -141,6 +141,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
     setIsSignUpFlow(false);
+    setEmailOtp(['', '', '', '', '']);
+    setPin(['', '', '', '']);
     setAuthState('otp');
     toast.success('OTP sent to your email!');
   };
@@ -261,7 +263,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
           <div className="inline-flex items-center justify-center h-12 sm:h-16 mb-3 sm:mb-4">
             <img src="logos/velcro.png" alt="Velcro" className="h-full w-auto object-contain" />
           </div>
-          <p className="text-gray-500 text-sm">Payments made simple</p>
+          <p className="text-gray-500 text-sm">Move Money Globally - Without Limits</p>
         </div>
 
         {/* Auth Card */}
@@ -276,8 +278,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'name-email' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
-                      <UserCircle className="text-velcro-navy" size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <UserCircle className="text-gray-700" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create Account</h2>
                     <p className="text-gray-500 text-sm">Let's get started with your details</p>
@@ -352,7 +354,12 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                   <p className="text-center text-gray-500 text-sm mt-6">
                     Already have an account?{' '}
                     <button 
-                      onClick={() => setAuthState('login')}
+                      type="button"
+                      onClick={() => {
+                        setAuthState('login');
+                        setEmailOtp(['', '', '', '', '']);
+                        setPin(['', '', '', '']);
+                      }}
                       className="text-velcro-green hover:text-velcro-green-dark font-medium"
                     >
                       Sign In
@@ -365,8 +372,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'email-otp' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
-                      <Mail className="text-velcro-navy" size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <Mail className="text-gray-700" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify Email</h2>
                     <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
@@ -432,8 +439,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'phone' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
-                      <Smartphone className="text-velcro-green" size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <Smartphone className="text-gray-700" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Phone Number</h2>
                     <p className="text-gray-500 text-sm">Add your WhatsApp number</p>
@@ -502,8 +509,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'whatsapp-otp' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
-                      <MessageCircle className="text-velcro-green" size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="text-gray-700" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Verify WhatsApp</h2>
                     <p className="text-gray-500 text-sm">Enter the 5-digit code sent to</p>
@@ -569,8 +576,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               {signUpStep === 'pin' && (
                 <>
                   <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
-                      <Lock className="text-velcro-navy" size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <Lock className="text-gray-700" size={28} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Create PIN</h2>
                     <p className="text-gray-500 text-sm">Secure your account with a 4-digit PIN</p>
@@ -650,8 +657,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
-                  <CheckCircle className="text-velcro-navy" size={28} />
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="text-gray-700" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Welcome Back</h2>
                 <p className="text-gray-500 text-sm">Sign in to your Velcro account</p>
@@ -700,6 +707,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
               <p className="text-center text-gray-500 text-sm mt-6">
                 Don't have an account?{' '}
                 <button 
+                  type="button"
                   onClick={() => {
                     setAuthState('signup');
                     setSignUpStep('name-email');
@@ -720,8 +728,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-velcro-green/20 to-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-green/20">
-                  <KeyRound className="text-velcro-green" size={28} />
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <KeyRound className="text-gray-700" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter OTP</h2>
                 <p className="text-gray-500 text-sm">We've sent a 5-digit code to {formData.email || 'your email'}</p>
@@ -796,8 +804,8 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
             <>
               {renderLoginProgress()}
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-velcro-navy/20 to-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-velcro-navy/20">
-                  <Lock className="text-velcro-navy" size={28} />
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Lock className="text-gray-700" size={28} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 mb-1">Enter PIN</h2>
                 <p className="text-gray-500 text-sm">Enter your 4-digit PIN to continue</p>

@@ -452,7 +452,7 @@ export function Settings() {
 
         {/* WhatsApp Support */}
         <a 
-          href="https://wa.me/2348001234567"
+          href="https://wa.me/2347035428475"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-green-200 hover:shadow-soft hover:bg-green-50/50 transition-all"
@@ -463,7 +463,7 @@ export function Settings() {
             </div>
             <div>
               <p className="font-semibold text-gray-900">WhatsApp Support</p>
-              <p className="text-gray-500 text-sm">+234 800 123 4567</p>
+              <p className="text-gray-500 text-sm">+234 703 542 8475</p>
               <p className="text-xs text-gray-400 mt-1">Usually responds in minutes</p>
             </div>
           </div>

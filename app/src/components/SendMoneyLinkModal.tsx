@@ -241,8 +241,8 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
         
         <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-scale-in">
           <div className="p-6 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check size={32} className="text-green-600" />
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+              <Check size={32} className="text-gray-700" />
             </div>
             
             <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Link Created!</h2>
@@ -574,8 +574,8 @@ export function SendMoneyLinkModal({ isOpen, onClose, balances, onCreateLink }: 
               </button>
             </div>
             <div className="flex-1 p-6 flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <LockIcon size={28} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-4">
+                <LockIcon size={28} className="text-gray-700" />
               </div>
               <p className="text-gray-500 text-sm mb-6">Enter your 4-digit PIN to confirm</p>
               <div className="flex gap-3 mb-6">

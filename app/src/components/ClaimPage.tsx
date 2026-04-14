@@ -164,8 +164,8 @@ export function ClaimPage({ linkId: propLinkId }: ClaimPageProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-velcro-navy to-gray-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check size={40} className="text-green-600" />
+          <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+            <Check size={40} className="text-gray-700" />
           </div>
           <h2 className="text-2xl font-display font-bold text-gray-900 mb-2">Money Received!</h2>
           <p className="text-gray-500 mb-6">
