@@ -338,7 +338,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl mt-2"
+                      className="w-full bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl mt-2"
                     >
                       {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -422,7 +422,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                       <Button
                         type="submit"
                         disabled={isLoading || emailOtp.some(digit => !digit)}
-                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                        className="flex-1 bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                       >
                         {isLoading ? (
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -453,7 +453,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                         <MessageCircle size={20} className="text-velcro-green" />
                       </div>
                       <div>
-                        <p className="text-sm text-velcro-navy font-medium">Use your WhatsApp number</p>
+                        <p className="text-sm text-velcro-green font-medium">Use your WhatsApp number</p>
                         <p className="text-xs text-gray-600 mt-1">
                           We'll send your OTP via WhatsApp for faster and more secure verification.
                         </p>
@@ -489,7 +489,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                        className="flex-1 bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                       >
                         {isLoading ? (
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -559,7 +559,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                       <Button
                         type="submit"
                         disabled={isLoading || whatsappOtp.some(digit => !digit)}
-                        className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                        className="flex-1 bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                       >
                         {isLoading ? (
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -635,7 +635,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                     <Button
                       type="submit"
                       disabled={isLoading || pin.some(d => !d) || confirmPin.some(d => !d)}
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                      className="w-full bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                     >
                       {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -695,10 +695,10 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 </Button>
               </form>
 
-              <div className="mt-6 p-4 bg-velcro-navy/10 rounded-xl">
+              <div className="mt-6 p-4 bg-velcro-green/5 rounded-xl border border-velcro-green/10">
                 <div className="flex items-center gap-3 text-gray-600 text-sm">
-                  <div className="w-8 h-8 bg-velcro-navy/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Mail size={16} className="text-velcro-navy" />
+                  <div className="w-8 h-8 rounded-xl bg-velcro-green/10 border border-velcro-green/20 flex items-center justify-center flex-shrink-0">
+                    <Mail size={16} className="text-velcro-green" />
                   </div>
                   <span>Passwordless login with OTP</span>
                 </div>
@@ -787,7 +787,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 <Button
                   type="submit"
                   disabled={isLoading || emailOtp.some(digit => !digit)}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                  className="w-full bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -859,7 +859,7 @@ export function AuthFlow({ authState, setAuthState, onComplete }: AuthFlowProps)
                 <Button
                   type="submit"
                   disabled={isLoading || pin.some(digit => !digit)}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold h-12 rounded-xl"
+                  className="w-full bg-velcro-green hover:bg-velcro-green/90 text-white font-semibold h-12 rounded-xl"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

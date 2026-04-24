@@ -449,7 +449,7 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
     <div className="space-y-5">
       {/* Header */}
       <div className="text-center pb-2">
-        <div className="w-16 h-16 bg-gradient-to-br from-velcro-green/20 to-velcro-green/5 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-4 ring-velcro-green/10">
+        <div className="w-16 h-16 rounded-2xl bg-velcro-green/10 border border-velcro-green/20 flex items-center justify-center mx-auto mb-4">
           <Shield size={32} className="text-velcro-green" />
         </div>
         <h2 className="text-xl font-display font-bold text-gray-900">Verify Your Account</h2>
@@ -461,9 +461,9 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
         {/* Individual Option */}
         <button
           onClick={() => handleSelectType('individual')}
-          className="w-full p-5 bg-white border border-gray-200 hover:border-blue-400 rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
+          className="w-full p-5 bg-white border border-gray-200 hover:border-velcro-green/40 rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute top-0 right-0 w-24 h-24 bg-velcro-green/5 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center gap-4 relative">
             <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
               <User size={28} className="text-gray-700" />
@@ -471,7 +471,7 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900 text-lg">Individual</h3>
-                <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <ChevronRight size={20} className="text-gray-400 group-hover:text-velcro-green transition-colors" />
               </div>
               <p className="text-sm text-gray-500 mt-0.5">Personal account for individuals</p>
             </div>
@@ -480,9 +480,9 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
           {/* Features */}
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Tier 1</span>
+              <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">Tier 1</span>
               <span className="text-gray-300">→</span>
-              <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Tier 2</span>
+              <span className="px-3 py-1 bg-velcro-green/10 text-velcro-green text-xs font-semibold rounded-full">Tier 2</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="flex items-center gap-2">
@@ -504,7 +504,7 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
         {/* Business Option */}
         <button
           onClick={() => handleSelectType('business')}
-          className="w-full p-5 bg-white border border-gray-200 hover:border-velcro-navy rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
+          className="w-full p-5 bg-white border border-gray-200 hover:border-velcro-navy/40 rounded-2xl hover:shadow-lg transition-all text-left group relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-velcro-navy/5 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="flex items-center gap-4 relative">
@@ -524,7 +524,7 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-velcro-navy/10 text-velcro-navy text-xs font-semibold rounded-full">Tier 3 Direct</span>
-              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">HIGH LIMIT</span>
+              <span className="px-2 py-0.5 bg-velcro-green/10 text-velcro-green text-[10px] font-bold rounded-full">HIGH LIMIT</span>
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div className="flex items-center gap-2">
@@ -545,10 +545,10 @@ export function KYCModal({ onClose, onComplete }: KYCModalProps) {
       </div>
 
       {/* Info Box */}
-      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+      <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Info size={16} className="text-gray-500" />
+          <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+            <Info size={16} className="text-gray-700" />
           </div>
           <div>
             <p className="text-sm text-gray-700 font-medium">Start with basic access</p>

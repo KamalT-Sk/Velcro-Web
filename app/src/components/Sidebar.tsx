@@ -160,25 +160,25 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
         {!isCollapsed && (
           <div className="px-4 py-3">
             {userKYC.tier === 'none' ? (
-              <div className="rounded-2xl border border-amber-200/70 bg-amber-50/60 p-4">
+              <div className="rounded-2xl border border-velcro-green/15 bg-velcro-green/5 p-4">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white border border-amber-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <Shield size={20} className="text-amber-600" />
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-velcro-green/20 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Shield size={20} className="text-velcro-green" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-amber-900">KYC Required</p>
-                    <p className="text-xs text-amber-700/80 mt-0.5">Complete verification to unlock all features</p>
+                    <p className="text-sm font-semibold text-gray-900">KYC Required</p>
+                    <p className="text-xs text-gray-600 mt-0.5">Complete verification to unlock all features</p>
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="h-1.5 bg-amber-100 rounded-full mb-3 overflow-hidden">
-                  <div className="h-full w-0 bg-amber-500 rounded-full" />
+                <div className="h-1.5 bg-velcro-green/10 rounded-full mb-3 overflow-hidden">
+                  <div className="h-full w-0 bg-velcro-green rounded-full" />
                 </div>
                 
                 <Button 
                   size="sm"
-                  className="w-full text-xs h-9 rounded-xl bg-amber-600 hover:bg-amber-700 text-white border-0"
+                  className="w-full text-xs h-9 rounded-xl bg-velcro-green hover:bg-velcro-green/90 text-white border-0"
                   onClick={onKYCClick}
                 >
                   Verify Now
@@ -186,29 +186,29 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
                 </Button>
               </div>
             ) : (
-              <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/60 p-4">
+              <div className="rounded-2xl border border-velcro-navy/15 bg-velcro-navy/5 p-4">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-velcro-navy/20 flex items-center justify-center flex-shrink-0 shadow-sm">
                     {kycProgress === 100 ? (
-                      <ShieldCheck size={20} className="text-emerald-600" />
+                      <ShieldCheck size={20} className="text-velcro-navy" />
                     ) : (
-                      <Sparkles size={20} className="text-emerald-600" />
+                      <Sparkles size={20} className="text-velcro-navy" />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-emerald-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {kycProgress === 100 ? 'Fully Verified' : `KYC ${userKYC.tier.replace('tier', 'Tier ')}`}
                     </p>
-                    <p className="text-xs text-emerald-700/80 mt-0.5">
+                    <p className="text-xs text-gray-600 mt-0.5">
                       Daily limit: ₦{userKYC.dailyLimit.toLocaleString()}
                     </p>
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="h-1.5 bg-emerald-100 rounded-full mb-3 overflow-hidden">
+                <div className="h-1.5 bg-velcro-navy/10 rounded-full mb-3 overflow-hidden">
                   <div 
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                    className="h-full bg-velcro-navy rounded-full transition-all duration-500"
                     style={{ width: `${kycProgress}%` }}
                   />
                 </div>
@@ -217,7 +217,7 @@ export function Sidebar({ currentView, onViewChange, userKYC, whatsAppNumber, ve
                   <Button 
                     size="sm"
                     variant="outline"
-                    className="w-full text-xs h-9 rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-100/60 hover:text-emerald-900 bg-white"
+                    className="w-full text-xs h-9 rounded-xl border-velcro-navy/25 text-velcro-navy hover:bg-velcro-navy/5 hover:text-velcro-navy bg-white"
                     onClick={onKYCClick}
                   >
                     Upgrade Tier

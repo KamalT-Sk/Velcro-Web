@@ -260,8 +260,8 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
           {step === 'intro' && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Wallet size={40} className="text-white" />
+                <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Wallet size={40} className="text-gray-700" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Your USDC Wallet</h3>
                 <p className="text-sm text-gray-600">
@@ -270,27 +270,27 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Check size={16} className="text-green-600" />
+                <div className="flex items-start gap-3 p-3 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <Check size={16} className="text-gray-700" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">No KYC Required</p>
                     <p className="text-xs text-gray-500">Start with a $100 limit. Upgrade anytime.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield size={16} className="text-blue-600" />
+                <div className="flex items-start gap-3 p-3 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <Shield size={16} className="text-gray-700" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">Secure Storage</p>
                     <p className="text-xs text-gray-500">Your wallet is secured by Velcro. No keys to manage.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Sparkles size={16} className="text-purple-600" />
+                <div className="flex items-start gap-3 p-3 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <Sparkles size={16} className="text-gray-700" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm">Instant Setup</p>
@@ -299,7 +299,7 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
                 </div>
               </div>
 
-              <Button onClick={generateWallet} className="w-full h-12 text-base font-semibold bg-purple-600 hover:bg-purple-700">
+              <Button onClick={generateWallet} className="w-full h-12 text-base font-semibold rounded-xl bg-velcro-green hover:bg-velcro-green/90 text-white">
                 <Sparkles size={18} className="mr-2" />
                 Generate Wallet
               </Button>
@@ -309,10 +309,10 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
           {step === 'creating' && (
             <div className="text-center py-8">
               <div className="relative w-24 h-24 mx-auto mb-6">
-                <div className="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 border-4 border-velcro-green/10 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-velcro-green rounded-full border-t-transparent animate-spin"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Wallet size={32} className="text-purple-600" />
+                  <Wallet size={32} className="text-velcro-green" />
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Creating Your Wallet</h3>
@@ -322,14 +322,14 @@ function GenerateWalletModal({ onClose, onComplete }: GenerateWalletModalProps) 
 
           {step === 'complete' && (
             <div className="text-center py-8">
-              <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mx-auto mb-4">
-                <Check size={40} className="text-gray-700" />
+              <div className="w-20 h-20 rounded-2xl bg-velcro-green/10 border border-velcro-green/20 flex items-center justify-center mx-auto mb-4">
+                <Check size={40} className="text-velcro-green" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Wallet Created!</h3>
               <p className="text-sm text-gray-500 mb-4">
                 Your Solana wallet is ready for USDC transactions.
               </p>
-              <div className="p-3 bg-gray-50 rounded-xl">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <p className="text-xs text-gray-500 mb-1">Your Wallet Address</p>
                 <code className="text-xs font-mono text-gray-700 break-all">{walletAddress}</code>
               </div>
